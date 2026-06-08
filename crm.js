@@ -1,9 +1,9 @@
 // ── CRM Module ────────────────────────────────────────────────────────────────
-// Stored in Supabase, mandala table, row id=2, same pattern as the grid.
+// Stored in Supabase, crm table, row id=2, same pattern as the grid.
 
-const SUPABASE_URL = 'https://crktlztfsyqbwnguqqjl.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNya3RsenRmc3lxYnduZ3VxcWpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MDI4NjYsImV4cCI6MjA5MzQ3ODg2Nn0.IGpfgsGw0NNadnfm8kA-yY6b3wW-9q5o0PRA8CI1LS4';
-const CRM_ROW_ID  = 2;
+const SUPABASE_URL = 'https://sofzlqjszuskvwlkxvhr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvZnpscWpzenVza3Z3bGt4dmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTcyMjYsImV4cCI6MjA5NjQ3MzIyNn0.SGkwZg1k89w5qxixLqfckCuVoPY5UPX4Af7QIc8bVFQ';
+const CRM_ROW_ID  = 1;
 
 const SB = {
   apikey:          SUPABASE_KEY,
@@ -40,7 +40,7 @@ async function crmLoad() {
   // Fall back to localStorage while Supabase is unavailable
   try {
     const res  = await fetch(
-      `${SUPABASE_URL}/rest/v1/mandala?id=eq.${CRM_ROW_ID}&select=data`,
+      `${SUPABASE_URL}/rest/v1/crm?id=eq.${CRM_ROW_ID}&select=data`,
       { headers: SB }
     );
     const rows = await res.json();
@@ -55,7 +55,7 @@ async function crmLoad() {
 async function crmSave() {
   localStorage.setItem('elan_crm', JSON.stringify({ contacts }));
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/mandala`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/crm`, {
       method:  'POST',
       headers: { ...SB, Prefer: 'resolution=merge-duplicates' },
       body:    JSON.stringify({ id: CRM_ROW_ID, data: { contacts } }),
