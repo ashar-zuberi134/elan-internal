@@ -438,10 +438,14 @@ function renderPendingQueue(items) {
   const list    = document.getElementById('crm-pending-list');
   const badge   = document.getElementById('crm-pending-count');
 
-  if (!items.length) { section.style.display = 'none'; return; }
-
   section.style.display = 'block';
-  badge.textContent     = items.length;
+  badge.textContent      = items.length;
+  badge.style.display    = items.length ? 'inline' : 'none';
+
+  if (!items.length) {
+    list.innerHTML = '<div class="crm-empty" style="padding:20px 0;">No detections yet — email sync will populate this once connected.</div>';
+    return;
+  }
 
   list.innerHTML = items.map(p => `
     <div class="pending-row" data-id="${p.id}">
