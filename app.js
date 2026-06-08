@@ -60,18 +60,49 @@ async function saveState() {
 
 // ── KPI Bar ───────────────────────────────────────────────────────────────────
 
+const RAPIDAPI_KEY   = '258df5cc98mshcdc31725b41d656p184f11jsna354edbf6ed6';
+const LI_CACHE_KEY   = 'elan_li_kpi';
+const LI_CACHE_TTL   = 24 * 60 * 60 * 1000; // 24 hours
+
 async function loadLinkedinKpi() {
+  // Use cached value if less than 24 hours old
   try {
-    const res  = await fetch('kpi.json?t=' + Date.now());
-    const json = await res.json();
-    const li   = json.linkedin;
-    document.getElementById('kpi-linkedin').textContent =
-      li?.value != null ? Number(li.value).toLocaleString() : '—';
-    document.getElementById('kpi-linkedin-date').textContent =
-      li?.date ? `Updated ${li.date}` : 'Auto-updated daily';
+    const cached = JSON.parse(localStorage.getItem(LI_CACHE_KEY) || 'null');
+    if (cached && Date.now() - cached.fetchedAt < LI_CACHE_TTL) {
+      renderLinkedinKpi(cached.value, cached.date);
+      return;
+    }
+  } catch { /* ignore bad cache */ }
+
+  // Fetch fresh from RapidAPI
+  try {
+    const res = await fetch(
+      'https://fresh-linkedin-profile-data.p.rapidapi.com/get-company-by-linkedinurl' +
+      '?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fcompany%2Felan-advisors%2F',
+      {
+        headers: {
+          'x-rapidapi-host': 'fresh-linkedin-profile-data.p.rapidapi.com',
+          'x-rapidapi-key':  RAPIDAPI_KEY,
+        },
+      }
+    );
+    const { data } = await res.json();
+    const value = data?.follower_count;
+    if (value == null) throw new Error('no follower_count');
+
+    const date = new Date().toISOString().slice(0, 10);
+    localStorage.setItem(LI_CACHE_KEY, JSON.stringify({ value, date, fetchedAt: Date.now() }));
+    renderLinkedinKpi(value, date);
   } catch {
-    document.getElementById('kpi-linkedin-date').textContent = 'Auto-updated daily';
+    renderLinkedinKpi(null, null);
   }
+}
+
+function renderLinkedinKpi(value, date) {
+  document.getElementById('kpi-linkedin').textContent =
+    value != null ? Number(value).toLocaleString() : '—';
+  document.getElementById('kpi-linkedin-date').textContent =
+    date ? `Updated ${date}` : 'Auto-updated daily';
 }
 
 function renderKpis() {
