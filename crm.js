@@ -434,13 +434,11 @@ async function savePendingQueue(items) {
 }
 
 function renderPendingQueue(items) {
-  const section = document.getElementById('crm-pending-section');
-  const list    = document.getElementById('crm-pending-list');
-  const badge   = document.getElementById('crm-pending-count');
+  const list  = document.getElementById('crm-pending-list');
+  const badge = document.getElementById('crm-pending-count');
 
-  section.style.display = 'block';
-  badge.textContent      = items.length;
-  badge.style.display    = items.length ? 'inline' : 'none';
+  badge.textContent   = items.length;
+  badge.style.display = items.length ? 'inline' : 'none';
 
   if (!items.length) {
     list.innerHTML = '<div class="crm-empty" style="padding:20px 0;">No detections yet — email sync will populate this once connected.</div>';
@@ -507,6 +505,17 @@ export function initCrm() {
   });
 
   document.getElementById('crm-overlay').addEventListener('click', closeDrawer);
+
+  // Sub-tab switching
+  document.querySelectorAll('.sub-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('sub-tab--active'));
+      tab.classList.add('sub-tab--active');
+      const panel = tab.dataset.crmTab;
+      document.getElementById('crm-panel-contacts').style.display = panel === 'contacts' ? 'block' : 'none';
+      document.getElementById('crm-panel-inbox').style.display    = panel === 'inbox'    ? 'block' : 'none';
+    });
+  });
 
   crmLoad();
   loadPendingQueue();

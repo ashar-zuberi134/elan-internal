@@ -186,32 +186,34 @@
   <!-- ── Tab: CRM ── -->
   <main class="page tab-panel" id="tab-crm">
 
-    <div class="crm-toolbar">
-      <input class="crm-search" id="crm-search" type="text" placeholder="Search by name, company or position…" />
-      <button class="btn btn--primary" id="crm-add-btn">+ Add Contact</button>
+    <!-- Sub-tabs -->
+    <div class="sub-tabs">
+      <button class="sub-tab sub-tab--active" data-crm-tab="contacts">Contacts</button>
+      <button class="sub-tab" data-crm-tab="inbox">
+        Inbox Detections
+        <span class="crm-pending-badge" id="crm-pending-count" style="display:none;"></span>
+      </button>
     </div>
 
-    <div class="crm-filter-bar" id="crm-filter-bar"></div>
-
-    <!-- Column headers -->
-    <div class="crm-header">
-      <div>Name / Role</div>
-      <div>Tags</div>
-      <div>Latest Touchpoint</div>
-      <div></div>
-    </div>
-
-    <div id="crm-list"></div>
-
-    <!-- Pending queue -->
-    <div id="crm-pending-section" style="display:none;">
-      <div class="crm-pending-header">
-        <div class="crm-pending-title">
-          Inbox Detections
-          <span class="crm-pending-badge" id="crm-pending-count">0</span>
-        </div>
-        <div class="crm-pending-sub">People found in your emails — review and add to CRM or dismiss.</div>
+    <!-- Contacts panel -->
+    <div id="crm-panel-contacts">
+      <div class="crm-toolbar">
+        <input class="crm-search" id="crm-search" type="text" placeholder="Search by name, company or position…" />
+        <button class="btn btn--primary" id="crm-add-btn">+ Add Contact</button>
       </div>
+      <div class="crm-filter-bar" id="crm-filter-bar"></div>
+      <div class="crm-header">
+        <div>Name / Role</div>
+        <div>Tags</div>
+        <div>Latest Touchpoint</div>
+        <div></div>
+      </div>
+      <div id="crm-list"></div>
+    </div>
+
+    <!-- Inbox Detections panel -->
+    <div id="crm-panel-inbox" style="display:none;">
+      <p class="sub">People detected in your emails — review and add to CRM or dismiss.</p>
       <div id="crm-pending-list"></div>
     </div>
 
