@@ -60,49 +60,104 @@ async function saveState() {
 
 // ── KPI Bar ───────────────────────────────────────────────────────────────────
 
-const RAPIDAPI_KEY   = '258df5cc98mshcdc31725b41d656p184f11jsna354edbf6ed6';
-const LI_CACHE_KEY   = 'elan_li_kpi';
-const LI_CACHE_TTL   = 24 * 60 * 60 * 1000; // 24 hours
+const RAPIDAPI_KEY = '258df5cc98mshcdc31725b41d656p184f11jsna354edbf6ed6';
+const LI_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
-async function loadLinkedinKpi() {
-  // Use cached value if less than 24 hours old
+async function liCachedFetch(cacheKey, url) {
   try {
-    const cached = JSON.parse(localStorage.getItem(LI_CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.fetchedAt < LI_CACHE_TTL) {
-      renderLinkedinKpi(cached.value, cached.date);
-      return;
-    }
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if (cached && Date.now() - cached.fetchedAt < LI_CACHE_TTL) return cached;
   } catch { /* ignore bad cache */ }
 
-  // Fetch fresh from RapidAPI
-  try {
-    const res = await fetch(
-      'https://fresh-linkedin-profile-data.p.rapidapi.com/get-company-by-linkedinurl' +
-      '?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fcompany%2Felan-advisors%2F',
-      {
-        headers: {
-          'x-rapidapi-host': 'fresh-linkedin-profile-data.p.rapidapi.com',
-          'x-rapidapi-key':  RAPIDAPI_KEY,
-        },
-      }
-    );
-    const { data } = await res.json();
-    const value = data?.follower_count;
-    if (value == null) throw new Error('no follower_count');
-
-    const date = new Date().toISOString().slice(0, 10);
-    localStorage.setItem(LI_CACHE_KEY, JSON.stringify({ value, date, fetchedAt: Date.now() }));
-    renderLinkedinKpi(value, date);
-  } catch {
-    renderLinkedinKpi(null, null);
-  }
+  const res  = await fetch(url, {
+    headers: {
+      'x-rapidapi-host': 'fresh-linkedin-profile-data.p.rapidapi.com',
+      'x-rapidapi-key':  RAPIDAPI_KEY,
+    },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
 
-function renderLinkedinKpi(value, date) {
-  document.getElementById('kpi-linkedin').textContent =
-    value != null ? Number(value).toLocaleString() : '—';
-  document.getElementById('kpi-linkedin-date').textContent =
-    date ? `Updated ${date}` : 'Auto-updated daily';
+async function loadLinkedinKpi() {
+  try {
+    const cacheKey = 'elan_li_company';
+    let result;
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+      if (cached && Date.now() - cached.fetchedAt < LI_CACHE_TTL) {
+        result = cached;
+      } else {
+        const json  = await liCachedFetch(cacheKey,
+          'https://fresh-linkedin-profile-data.p.rapidapi.com/get-company-by-linkedinurl' +
+          '?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fcompany%2Felan-advisors%2F'
+        );
+        const value = json?.data?.follower_count;
+        const date  = new Date().toISOString().slice(0, 10);
+        result      = { value, date, fetchedAt: Date.now() };
+        localStorage.setItem(cacheKey, JSON.stringify(result));
+      }
+    } catch { result = {}; }
+
+    document.getElementById('kpi-linkedin').textContent =
+      result.value != null ? Number(result.value).toLocaleString() : '—';
+    document.getElementById('kpi-linkedin-date').textContent =
+      result.date ? `Updated ${result.date}` : 'Auto-updated daily';
+  } catch { /* silent */ }
+}
+
+async function loadPersonalLinkedinKpis() {
+  const people = [
+    {
+      id:    'kpi-li-yash',
+      key:   'elan_li_yash',
+      url:   'https%3A%2F%2Fwww.linkedin.com%2Fin%2Fyash-agrawal-6495a3149%2F',
+    },
+    {
+      id:    'kpi-li-rohit',
+      key:   'elan_li_rohit',
+      url:   'https%3A%2F%2Fwww.linkedin.com%2Fin%2Frohit-maini-a96b4b69%2F',
+    },
+    {
+      id:    'kpi-li-ashar',
+      key:   'elan_li_ashar',
+      url:   'https%3A%2F%2Fwww.linkedin.com%2Fin%2Fashar-zuberi-a0845a19b%2F',
+    },
+  ];
+
+  await Promise.all(people.map(async ({ id, key, url }) => {
+    try {
+      let result;
+      const cached = JSON.parse(localStorage.getItem(key) || 'null');
+      if (cached && Date.now() - cached.fetchedAt < LI_CACHE_TTL) {
+        result = cached;
+      } else {
+        const json  = await fetch(
+          'https://fresh-linkedin-profile-data.p.rapidapi.com/enrich-lead' +
+          `?linkedin_url=${url}&include_skills=false&include_certifications=false` +
+          '&include_profile_status=false&include_company_public_url=false',
+          {
+            headers: {
+              'x-rapidapi-host': 'fresh-linkedin-profile-data.p.rapidapi.com',
+              'x-rapidapi-key':  RAPIDAPI_KEY,
+            },
+          }
+        ).then(r => r.json());
+        const value = json?.data?.follower_count ?? json?.follower_count ?? null;
+        const date  = new Date().toISOString().slice(0, 10);
+        result      = { value, date, fetchedAt: Date.now() };
+        localStorage.setItem(key, JSON.stringify(result));
+      }
+
+      const card = document.getElementById(id);
+      if (!card) return;
+      card.querySelector('.metric-value').textContent =
+        result.value != null ? Number(result.value).toLocaleString() : '—';
+      card.querySelector('.metric-meta').textContent =
+        result.date ? `Updated ${result.date}` : '';
+      card.classList.remove('metric-card--placeholder');
+    } catch { /* leave as placeholder */ }
+  }));
 }
 
 function renderKpis() {
@@ -374,3 +429,4 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 loadState();
 loadLinkedinKpi();
+loadPersonalLinkedinKpis();
