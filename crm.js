@@ -18,7 +18,12 @@ const TAGS = [
   'Family Office',
 ];
 
-const TOUCHPOINT_TYPES = ['Email', 'Call', 'Meeting', 'LinkedIn', 'WhatsApp', 'Other'];
+const TOUCHPOINT_TYPES = ['Email', 'Call', 'Meeting', 'LinkedIn', 'WhatsApp', 'Note', 'Other'];
+
+const SIDE_STYLES = {
+  'Buy':  { bg: '#eaf7f0', text: '#1a7a4a' },
+  'Sell': { bg: '#fef3e2', text: '#a0600a' },
+};
 
 const TAG_COLORS = {
   'SME / Client':          { bg: '#e8f4fd', text: '#1a6fa8' },
@@ -79,6 +84,12 @@ function tagChip(tag) {
   return `<span class="crm-tag" style="background:${c.bg};color:${c.text};">${tag}</span>`;
 }
 
+function sideChip(side) {
+  if (!side) return '';
+  const c = SIDE_STYLES[side] ?? { bg: '#f0f7f6', text: '#5a7a78' };
+  return `<span class="crm-tag" style="background:${c.bg};color:${c.text};">${side}-side</span>`;
+}
+
 function latestTouchpoint(contact) {
   if (!contact.touchpoints?.length) return null;
   return contact.touchpoints.reduce((a, b) => a.date > b.date ? a : b);
@@ -116,7 +127,7 @@ export function renderList() {
           <div class="crm-row-name">${c.name}</div>
           <div class="crm-row-sub">${[c.position, c.company].filter(Boolean).join(' · ')}</div>
         </div>
-        <div class="crm-row-tags">${(c.tags ?? []).map(tagChip).join('')}</div>
+        <div class="crm-row-tags">${sideChip(c.side)}${(c.tags ?? []).map(tagChip).join('')}</div>
         <div class="crm-row-latest">
           ${latest
             ? `<span class="crm-latest-type">${latest.type}</span><span class="crm-latest-date">${fmt(latest.date)}</span>`
@@ -166,6 +177,7 @@ function renderDrawer() {
   const drawer = document.getElementById('crm-drawer');
 
   const infoRows = [
+    c.side     && `<div class="drawer-info-row"><span>Side</span><span>${sideChip(c.side)}</span></div>`,
     c.company  && `<div class="drawer-info-row"><span>Company</span><span>${c.company}</span></div>`,
     c.position && `<div class="drawer-info-row"><span>Position</span><span>${c.position}</span></div>`,
     c.email    && `<div class="drawer-info-row"><span>Email</span><a href="mailto:${c.email}">${c.email}</a></div>`,
@@ -272,6 +284,14 @@ function openContactModal(existing = null) {
         </div>
       </div>
 
+      <label style="margin-top:4px;">Side</label>
+      <div class="tag-picker">
+        ${['Buy', 'Sell'].map(s => {
+          const sel = c.side === s;
+          return `<button class="tag-pick-btn side-pick-btn ${sel ? 'selected' : ''}" data-side="${s}">${s}-side</button>`;
+        }).join('')}
+      </div>
+
       <label style="margin-top:4px;">Tags</label>
       <div class="tag-picker">
         ${TAGS.map(tag => {
@@ -290,7 +310,14 @@ function openContactModal(existing = null) {
   document.body.appendChild(backdrop);
   backdrop.querySelector('#cf-name').focus();
 
-  backdrop.querySelectorAll('.tag-pick-btn').forEach(btn => {
+  backdrop.querySelectorAll('.side-pick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      backdrop.querySelectorAll('.side-pick-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  backdrop.querySelectorAll('.tag-pick-btn:not(.side-pick-btn)').forEach(btn => {
     btn.addEventListener('click', () => btn.classList.toggle('selected'));
   });
 
@@ -301,7 +328,8 @@ function openContactModal(existing = null) {
     const name = backdrop.querySelector('#cf-name').value.trim();
     if (!name) { backdrop.querySelector('#cf-name').focus(); return; }
 
-    const tags = [...backdrop.querySelectorAll('.tag-pick-btn.selected')].map(b => b.dataset.tag);
+    const tags = [...backdrop.querySelectorAll('.tag-pick-btn:not(.side-pick-btn).selected')].map(b => b.dataset.tag);
+    const side = backdrop.querySelector('.side-pick-btn.selected')?.dataset.side ?? null;
 
     if (isEdit) {
       Object.assign(existing, {
@@ -312,6 +340,7 @@ function openContactModal(existing = null) {
         phone:    backdrop.querySelector('#cf-phone').value.trim(),
         linkedin: backdrop.querySelector('#cf-linkedin').value.trim(),
         tags,
+        side,
       });
     } else {
       contacts.unshift({
@@ -323,6 +352,7 @@ function openContactModal(existing = null) {
         phone:       backdrop.querySelector('#cf-phone').value.trim(),
         linkedin:    backdrop.querySelector('#cf-linkedin').value.trim(),
         tags,
+        side,
         touchpoints: [],
         createdAt:   new Date().toISOString(),
       });
