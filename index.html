@@ -185,11 +185,29 @@
 
   <!-- ── Tab: CRM ── -->
   <main class="page tab-panel" id="tab-crm">
-    <div class="placeholder-card">
-      <div class="placeholder-title">CRM</div>
-      <div class="placeholder-body">Coming soon — deal pipeline, contacts, and activity tracking.</div>
+
+    <div class="crm-toolbar">
+      <input class="crm-search" id="crm-search" type="text" placeholder="Search by name, company or position…" />
+      <button class="btn btn--primary" id="crm-add-btn">+ Add Contact</button>
     </div>
+
+    <div class="crm-filter-bar" id="crm-filter-bar"></div>
+
+    <!-- Column headers -->
+    <div class="crm-header">
+      <div>Name / Role</div>
+      <div>Tags</div>
+      <div>Latest Touchpoint</div>
+      <div></div>
+    </div>
+
+    <div id="crm-list"></div>
+
   </main>
+
+  <!-- ── CRM Drawer overlay ── -->
+  <div class="crm-overlay" id="crm-overlay"></div>
+  <aside class="crm-drawer" id="crm-drawer"></aside>
 
 <script type="module" src="app.js"></script>
 </body>

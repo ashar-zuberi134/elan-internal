@@ -1,4 +1,5 @@
 import { BLOCK_ORDER, SURROUND_KEYS, SURROUND_DISPLAY, CORE_LABEL, DEFAULTS } from './data.js';
+import { initCrm, renderList as crmRenderList } from './crm.js';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -492,6 +493,8 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.getElementById('tab-' + tab.dataset.tab).classList.add('tab-panel--active');
   });
 });
+
+initCrm();
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 
