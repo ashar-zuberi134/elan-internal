@@ -326,6 +326,13 @@ function openContactModal(existing = null) {
         touchpoints: [],
         createdAt:   new Date().toISOString(),
       });
+
+      // If accepted from pending queue, remove it there
+      if (c._pendingId && c._pendingItems) {
+        const updated = c._pendingItems.filter(p => p.id !== c._pendingId);
+        await savePendingQueue(updated);
+        renderPendingQueue(updated);
+      }
     }
 
     backdrop.remove();
@@ -407,6 +414,82 @@ async function deleteTouchpoint(contactId, tpId) {
   }
 }
 
+// ── Pending Queue ─────────────────────────────────────────────────────────────
+
+async function loadPendingQueue() {
+  try {
+    const res   = await fetch(`${SUPABASE_URL}/rest/v1/crm_pending?id=eq.1&select=data`, { headers: SB });
+    const rows  = await res.json();
+    const items = rows?.[0]?.data?.items ?? [];
+    renderPendingQueue(items);
+  } catch { /* silent — pending is non-critical */ }
+}
+
+async function savePendingQueue(items) {
+  await fetch(`${SUPABASE_URL}/rest/v1/crm_pending`, {
+    method:  'POST',
+    headers: { ...SB, Prefer: 'resolution=merge-duplicates' },
+    body:    JSON.stringify({ id: 1, data: { items } }),
+  });
+}
+
+function renderPendingQueue(items) {
+  const section = document.getElementById('crm-pending-section');
+  const list    = document.getElementById('crm-pending-list');
+  const badge   = document.getElementById('crm-pending-count');
+
+  if (!items.length) { section.style.display = 'none'; return; }
+
+  section.style.display = 'block';
+  badge.textContent     = items.length;
+
+  list.innerHTML = items.map(p => `
+    <div class="pending-row" data-id="${p.id}">
+      <div class="pending-main">
+        <div class="pending-name">${p.name || 'Unknown'}</div>
+        <div class="pending-sub">${[p.position, p.company].filter(Boolean).join(' · ') || p.email}</div>
+        ${p.context ? `<div class="pending-context">${p.context}</div>` : ''}
+      </div>
+      <div class="pending-email">${p.email}</div>
+      <div class="pending-subject" title="${p.emailSubject || ''}">
+        ${p.emailSubject ? `📧 ${p.emailSubject.slice(0, 40)}${p.emailSubject.length > 40 ? '…' : ''}` : ''}
+      </div>
+      <div class="pending-actions">
+        <button class="btn btn--sm btn--primary pending-accept" data-id="${p.id}">Add to CRM</button>
+        <button class="btn btn--sm pending-dismiss" data-id="${p.id}">Dismiss</button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.pending-accept').forEach(btn => {
+    btn.addEventListener('click', () => acceptPending(btn.dataset.id, items));
+  });
+  list.querySelectorAll('.pending-dismiss').forEach(btn => {
+    btn.addEventListener('click', () => dismissPending(btn.dataset.id, items));
+  });
+}
+
+async function acceptPending(id, items) {
+  const item = items.find(p => p.id === id);
+  if (!item) return;
+
+  // Pre-fill the add contact modal with detected data
+  openContactModal({
+    name:     item.name,
+    company:  item.company,
+    position: item.position,
+    email:    item.email,
+    _pendingId: id,
+    _pendingItems: items,
+  });
+}
+
+async function dismissPending(id, items) {
+  const updated = items.filter(p => p.id !== id);
+  await savePendingQueue(updated);
+  renderPendingQueue(updated);
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 
 export function initCrm() {
@@ -422,4 +505,5 @@ export function initCrm() {
   document.getElementById('crm-overlay').addEventListener('click', closeDrawer);
 
   crmLoad();
+  loadPendingQueue();
 }

@@ -7,3 +7,6 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
+
+[functions."email-sync"]
+  schedule = "*/30 * * * *"

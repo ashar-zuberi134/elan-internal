@@ -1029,6 +1029,90 @@ body {
   border-color: #0D2B2A;
 }
 
+/* ── Pending Queue ── */
+
+.crm-pending-header {
+  margin-top: 28px;
+  margin-bottom: 12px;
+  padding-top: 24px;
+  border-top: 0.5px solid #c8e8e3;
+}
+
+.crm-pending-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0D2B2A;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.crm-pending-badge {
+  background: #E9A23B;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+.crm-pending-sub {
+  font-size: 11px;
+  color: #9bbfba;
+  margin-bottom: 12px;
+}
+
+.pending-row {
+  display: grid;
+  grid-template-columns: 1fr 180px 1fr 180px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: #fffdf7;
+  border: 0.5px solid #f0dca0;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.pending-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0D2B2A;
+}
+
+.pending-sub {
+  font-size: 11px;
+  color: #5a7a78;
+  margin-top: 2px;
+}
+
+.pending-context {
+  font-size: 10px;
+  color: #9bbfba;
+  margin-top: 3px;
+  font-style: italic;
+}
+
+.pending-email {
+  font-size: 11px;
+  color: #5a7a78;
+}
+
+.pending-subject {
+  font-size: 10.5px;
+  color: #9bbfba;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pending-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
 /* ── Small button variant ── */
 
 .btn--sm {
