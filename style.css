@@ -8,45 +8,28 @@ body {
   font-family: 'IBM Plex Sans', sans-serif;
   background: #f0f7f6;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24px 16px;
 }
 
-/* ── Layout ── */
-
-.page {
-  width: 100%;
-  max-width: 980px;
-}
+/* ── Top Bar ── */
 
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 0.5px solid #c8e8e3;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  padding: 0 24px;
+  height: 52px;
 }
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #0D2B2A;
-  letter-spacing: -0.01em;
-}
-
-.sub {
-  font-size: 12px;
-  color: #5a7a78;
-  margin-bottom: 12px;
-}
-
-/* ── Logo ── */
 
 .elan-logo {
   display: flex;
   align-items: center;
   gap: 7px;
+  flex-shrink: 0;
 }
 
 .elan-e {
@@ -75,65 +58,60 @@ body {
   color: #2A9D8F;
 }
 
-/* ── KPI Bar ── */
+/* ── Tabs ── */
 
-.kpi-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.kpi-card {
-  background: #fff;
-  border: 0.5px solid #c8e8e3;
-  border-radius: 8px;
-  padding: 10px 14px;
+.tabs {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 2px;
 }
 
-.kpi-label {
-  font-size: 9.5px;
+.tab {
+  height: 52px;
+  padding: 0 18px;
+  font-size: 13px;
+  font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 500;
   color: #5a7a78;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.kpi-value {
-  font-size: 22px;
-  font-weight: 600;
-  color: #0D2B2A;
-  line-height: 1.1;
-}
-
-.kpi-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 4px;
-}
-
-.kpi-updated {
-  font-size: 9px;
-  color: #9bbfba;
-}
-
-.kpi-edit-btn {
-  font-size: 9px;
-  color: #2A9D8F;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
-  border: 0.5px solid #c8e8e3;
-  background: #f4faf9;
-  border-radius: 3px;
-  padding: 2px 6px;
-  font-family: inherit;
+  transition: color 0.15s, border-color 0.15s;
 }
 
-.kpi-edit-btn:hover {
-  background: #e0f0ee;
+.tab:hover {
+  color: #0D2B2A;
+}
+
+.tab--active {
+  color: #2A9D8F;
+  border-bottom-color: #2A9D8F;
+}
+
+/* ── Tab Panels ── */
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel--active {
+  display: block;
+}
+
+/* ── Page wrapper ── */
+
+.page {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.sub {
+  font-size: 12px;
+  color: #5a7a78;
+  margin-bottom: 12px;
 }
 
 /* ── Legend ── */
@@ -198,14 +176,11 @@ body {
   pointer-events: none;
 }
 
-/* Cell variants */
-
 .cell--core {
   background: #0D2B2A;
   color: #E8F5F3;
   font-size: 8.5px;
   font-weight: 600;
-  white-space: pre-line;
 }
 
 .cell--theme,
@@ -214,7 +189,6 @@ body {
   color: #0D2B2A;
   font-weight: 600;
   font-size: 9px;
-  white-space: pre-line;
   cursor: pointer;
   border: 1px solid #c8e8e3;
 }
@@ -255,8 +229,6 @@ body {
   z-index: 5;
 }
 
-/* Owner tag */
-
 .owner-tag {
   position: absolute;
   bottom: 3px;
@@ -267,8 +239,6 @@ body {
   pointer-events: none;
   letter-spacing: 0.03em;
 }
-
-/* Tooltip */
 
 .tip-dot {
   display: none;
@@ -309,7 +279,7 @@ body {
   display: block;
 }
 
-/* ── Editor Panel ── */
+/* ── Editor ── */
 
 .editor {
   margin-top: 12px;
@@ -390,9 +360,7 @@ body {
   cursor: pointer;
 }
 
-.btn:hover {
-  background: #e0f0ee;
-}
+.btn:hover { background: #e0f0ee; }
 
 .btn--primary {
   background: #2A9D8F;
@@ -400,24 +368,19 @@ body {
   border-color: #2A9D8F;
 }
 
-.btn--primary:hover {
-  background: #227f72;
-}
+.btn--primary:hover { background: #227f72; }
 
 .btn--danger {
   color: #c0392b;
   border-color: #f5c6c6;
 }
 
-.btn--danger:hover {
-  background: #fdf0f0;
-}
+.btn--danger:hover { background: #fdf0f0; }
 
-/* ── Footer ── */
+/* ── Footer / status ── */
 
 .footer {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
   margin-top: 10px;
 }
@@ -429,11 +392,85 @@ body {
   min-height: 16px;
 }
 
-.status--error {
-  color: #c0392b;
+.status--error { color: #c0392b; }
+
+/* ── Metrics Tab ── */
+
+.metrics-section {
+  margin-bottom: 32px;
 }
 
-/* ── KPI Modal ── */
+.metrics-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5a7a78;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.metric-card {
+  background: #fff;
+  border: 0.5px solid #c8e8e3;
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-card--placeholder {
+  opacity: 0.5;
+}
+
+.metric-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: #5a7a78;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #0D2B2A;
+  line-height: 1.1;
+  margin: 4px 0 2px;
+}
+
+.metric-meta {
+  font-size: 10px;
+  color: #9bbfba;
+}
+
+.metric-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.kpi-edit-btn {
+  font-size: 9px;
+  color: #2A9D8F;
+  cursor: pointer;
+  border: 0.5px solid #c8e8e3;
+  background: #f4faf9;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-family: inherit;
+}
+
+.kpi-edit-btn:hover { background: #e0f0ee; }
+
+/* ── Modal ── */
 
 .modal-backdrop {
   position: fixed;
@@ -491,19 +528,35 @@ body {
   justify-content: flex-end;
 }
 
+/* ── CRM Placeholder ── */
+
+.placeholder-card {
+  background: #fff;
+  border: 0.5px solid #c8e8e3;
+  border-radius: 10px;
+  padding: 48px 32px;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.placeholder-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0D2B2A;
+  margin-bottom: 8px;
+}
+
+.placeholder-body {
+  font-size: 13px;
+  color: #9bbfba;
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 600px) {
-  .cell {
-    font-size: 7px;
-    min-height: 42px;
-  }
-
-  .grid {
-    gap: 2px;
-  }
-
-  .kpi-bar {
-    grid-template-columns: 1fr;
-  }
+  .cell { font-size: 7px; min-height: 42px; }
+  .grid { gap: 2px; }
+  .metrics-grid { grid-template-columns: 1fr; }
+  .topbar { padding: 0 12px; }
+  .tab { padding: 0 12px; font-size: 12px; }
 }

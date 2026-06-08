@@ -359,6 +359,17 @@ function setStatus(message, isError = false) {
   }
 }
 
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('tab-panel--active'));
+    tab.classList.add('tab--active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('tab-panel--active');
+  });
+});
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 
 loadState();
