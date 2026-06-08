@@ -1,6 +1,8 @@
 name: Update LinkedIn Followers
 
 on:
+  push:
+    branches: [main]       # runs immediately on every push to main
   schedule:
     - cron: '0 8 * * *'   # daily at 08:00 UTC
   workflow_dispatch:        # manual trigger from the Actions tab

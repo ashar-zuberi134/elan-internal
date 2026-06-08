@@ -35,7 +35,6 @@ async function loadState() {
     setStatus('');
   } catch {
     state = {};
-    setStatus('Could not load — check connection', true);
   }
   renderKpis();
   renderGrid();
