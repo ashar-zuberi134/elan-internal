@@ -528,6 +528,133 @@ body {
   justify-content: flex-end;
 }
 
+/* ── Metrics grid variants ── */
+
+.metrics-grid--5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.metrics-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.metric-card--tall {
+  min-height: 140px;
+}
+
+/* ── Section badge ── */
+
+.section-badge {
+  font-size: 9px;
+  font-weight: 500;
+  color: #9bbfba;
+  background: #f0f7f6;
+  border: 0.5px solid #c8e8e3;
+  border-radius: 10px;
+  padding: 2px 7px;
+  margin-left: 8px;
+  vertical-align: middle;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.section-badge--live  { color: #2A9D8F; background: #e8f7f5; border-color: #a8ddd6; }
+.section-badge--error { color: #c0392b; background: #fdf0f0; border-color: #f5c6c6; }
+
+/* ── Sparkline ── */
+
+.spark-wrap {
+  width: 100%;
+}
+
+/* ── Traffic sources ── */
+
+.source-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.source-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: #f0f7f6;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.source-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.source-label {
+  width: 110px;
+  color: #3a5a58;
+  font-size: 10.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.source-pct {
+  width: 36px;
+  text-align: right;
+  color: #5a7a78;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+/* ── Top pages ── */
+
+.page-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 0.5px solid #f0f7f6;
+  font-size: 11px;
+}
+
+.page-row:last-child { border-bottom: none; }
+
+.page-path {
+  width: 160px;
+  color: #0D2B2A;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.page-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: #f0f7f6;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.page-bar {
+  height: 100%;
+  background: #002060;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.page-views {
+  width: 44px;
+  text-align: right;
+  color: #5a7a78;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
 /* ── CRM Placeholder ── */
 
 .placeholder-card {

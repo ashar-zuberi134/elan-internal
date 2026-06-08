@@ -84,57 +84,101 @@
   <!-- ── Tab: Metrics ── -->
   <main class="page tab-panel" id="tab-metrics">
 
+    <!-- LinkedIn -->
     <section class="metrics-section">
-      <div class="metrics-section-title">Company</div>
+      <div class="metrics-section-title">LinkedIn</div>
       <div class="metrics-grid">
 
         <div class="metric-card">
-          <div class="metric-label">LinkedIn Followers</div>
+          <div class="metric-label">Company Followers</div>
           <div class="metric-value" id="kpi-linkedin">—</div>
           <div class="metric-meta" id="kpi-linkedin-date">Auto-updated daily</div>
         </div>
 
-        <div class="metric-card">
-          <div class="metric-label">Website Visits (Monthly)</div>
-          <div class="metric-value" id="kpi-visits">—</div>
-          <div class="metric-meta-row">
-            <div class="metric-meta" id="kpi-visits-date"></div>
-            <button class="kpi-edit-btn" id="kpi-visits-btn">Update</button>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-label">Days Since Founding</div>
-          <div class="metric-value" id="kpi-days">—</div>
-          <div class="metric-meta">Since 24 May 2025</div>
-        </div>
-
-      </div>
-    </section>
-
-    <section class="metrics-section">
-      <div class="metrics-section-title">Personal LinkedIn Followers</div>
-      <div class="metrics-grid">
-
-        <div class="metric-card metric-card--placeholder" id="kpi-li-yash">
+        <div class="metric-card" id="kpi-li-yash">
           <div class="metric-label">Yash (CEO)</div>
           <div class="metric-value">—</div>
           <div class="metric-meta"></div>
         </div>
 
-        <div class="metric-card metric-card--placeholder" id="kpi-li-rohit">
+        <div class="metric-card" id="kpi-li-rohit">
           <div class="metric-label">Rohit (Pres)</div>
           <div class="metric-value">—</div>
           <div class="metric-meta"></div>
         </div>
 
-        <div class="metric-card metric-card--placeholder" id="kpi-li-ashar">
+        <div class="metric-card" id="kpi-li-ashar">
           <div class="metric-label">Ashar (CTO)</div>
           <div class="metric-value">—</div>
           <div class="metric-meta"></div>
         </div>
 
       </div>
+    </section>
+
+    <!-- Company -->
+    <section class="metrics-section">
+      <div class="metrics-section-title">Company</div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Days Since Founding</div>
+          <div class="metric-value" id="kpi-days">—</div>
+          <div class="metric-meta">Since 24 May 2025</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Website — Google Analytics -->
+    <section class="metrics-section" id="ga-section">
+      <div class="metrics-section-title">Website <span class="section-badge" id="ga-status">Loading…</span></div>
+
+      <!-- Summary row -->
+      <div class="metrics-grid metrics-grid--5" style="margin-bottom:12px;">
+        <div class="metric-card">
+          <div class="metric-label">Sessions (30d)</div>
+          <div class="metric-value" id="ga-sessions">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Users (30d)</div>
+          <div class="metric-value" id="ga-users">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">New Users</div>
+          <div class="metric-value" id="ga-new-users">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Engagement Rate</div>
+          <div class="metric-value" id="ga-engagement">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Bounce Rate</div>
+          <div class="metric-value" id="ga-bounce">—</div>
+        </div>
+      </div>
+
+      <!-- Chart + Sources row -->
+      <div class="metrics-grid metrics-grid--2" style="margin-bottom:12px;">
+
+        <div class="metric-card metric-card--tall">
+          <div class="metric-label" style="margin-bottom:12px;">Sessions — last 30 days</div>
+          <div class="spark-wrap">
+            <canvas id="ga-spark" height="80"></canvas>
+          </div>
+        </div>
+
+        <div class="metric-card metric-card--tall">
+          <div class="metric-label" style="margin-bottom:12px;">Traffic Sources</div>
+          <div id="ga-sources"></div>
+        </div>
+
+      </div>
+
+      <!-- Top pages -->
+      <div class="metric-card">
+        <div class="metric-label" style="margin-bottom:10px;">Top Pages (30d)</div>
+        <div id="ga-pages"></div>
+      </div>
+
     </section>
 
   </main>

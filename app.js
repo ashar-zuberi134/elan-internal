@@ -166,47 +166,6 @@ function renderKpis() {
   const days    = Math.floor((Date.now() - founded) / 86_400_000);
   document.getElementById('kpi-days').textContent = days.toLocaleString();
 
-  // Website visits — manually updated via the modal
-  const visits = state.__kpi_visits;
-  document.getElementById('kpi-visits').textContent =
-    visits ? Number(visits.value).toLocaleString() : '—';
-  document.getElementById('kpi-visits-date').textContent =
-    visits ? `Updated ${visits.date}` : '';
-}
-
-function openVisitsModal() {
-  const cur = state.__kpi_visits;
-  const backdrop = document.createElement('div');
-  backdrop.className = 'modal-backdrop';
-
-  backdrop.innerHTML = `
-    <div class="modal">
-      <div class="modal-title">Update Website Visits</div>
-      <label>Monthly visitors</label>
-      <input id="modal-input" type="number" min="0" placeholder="e.g. 1 250"
-             value="${cur?.value ?? ''}"/>
-      <div class="modal-btns">
-        <button class="btn" id="modal-cancel">Cancel</button>
-        <button class="btn btn--primary" id="modal-save">Save</button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(backdrop);
-  backdrop.querySelector('#modal-input').focus();
-
-  backdrop.querySelector('#modal-cancel').onclick = () => backdrop.remove();
-  backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
-
-  backdrop.querySelector('#modal-save').onclick = async () => {
-    const val = parseInt(backdrop.querySelector('#modal-input').value);
-    if (isNaN(val)) return;
-    const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    state.__kpi_visits = { value: val, date };
-    backdrop.remove();
-    renderKpis();
-    await saveState();
-  };
 }
 
 // ── Grid ──────────────────────────────────────────────────────────────────────
@@ -399,9 +358,118 @@ document.getElementById('e-clear').addEventListener('click', async () => {
 
 document.getElementById('e-cancel').addEventListener('click', closeEditor);
 
-// ── Visits modal ──────────────────────────────────────────────────────────────
+// ── Google Analytics ──────────────────────────────────────────────────────────
 
-document.getElementById('kpi-visits-btn').addEventListener('click', openVisitsModal);
+const GA_CACHE_KEY = 'elan_ga_data';
+
+async function loadAnalytics() {
+  const badge = document.getElementById('ga-status');
+
+  // Try cache first (1 hour TTL — GA data doesn't change minute-to-minute)
+  try {
+    const cached = JSON.parse(localStorage.getItem(GA_CACHE_KEY) || 'null');
+    if (cached && Date.now() - cached.fetchedAt < 60 * 60 * 1000) {
+      renderAnalytics(cached);
+      badge.textContent = `Updated ${new Date(cached.fetchedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+      return;
+    }
+  } catch { /* ignore */ }
+
+  try {
+    const res  = await fetch('/.netlify/functions/analytics');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    const payload = { ...data, fetchedAt: Date.now() };
+    localStorage.setItem(GA_CACHE_KEY, JSON.stringify(payload));
+    renderAnalytics(payload);
+    badge.textContent = 'Live';
+    badge.classList.add('section-badge--live');
+  } catch (err) {
+    badge.textContent = 'Unavailable';
+    badge.classList.add('section-badge--error');
+  }
+}
+
+function renderAnalytics({ summary, daily, sources, pages }) {
+  const pct  = v => `${(v * 100).toFixed(1)}%`;
+  const num  = v => Number(v).toLocaleString();
+
+  document.getElementById('ga-sessions').textContent    = num(summary.sessions);
+  document.getElementById('ga-users').textContent       = num(summary.users);
+  document.getElementById('ga-new-users').textContent   = num(summary.newUsers);
+  document.getElementById('ga-engagement').textContent  = pct(summary.engagementRate);
+  document.getElementById('ga-bounce').textContent      = pct(summary.bounceRate);
+
+  renderSparkline(daily);
+  renderSources(sources);
+  renderPages(pages);
+}
+
+function renderSparkline(daily) {
+  const canvas = document.getElementById('ga-spark');
+  if (!canvas || !daily.length) return;
+  const ctx    = canvas.getContext('2d');
+  const dpr    = window.devicePixelRatio || 1;
+  const W      = canvas.parentElement.clientWidth;
+  const H      = 80;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+
+  const vals   = daily.map(d => d.sessions);
+  const maxVal = Math.max(...vals, 1);
+  const barW   = (W - (vals.length - 1) * 2) / vals.length;
+
+  vals.forEach((v, i) => {
+    const barH = Math.max(2, (v / maxVal) * (H - 16));
+    const x    = i * (barW + 2);
+    const y    = H - barH;
+    ctx.fillStyle = '#2A9D8F';
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, 2);
+    ctx.fill();
+  });
+}
+
+function renderSources(sources) {
+  const el    = document.getElementById('ga-sources');
+  if (!el || !sources.length) return;
+  const total = sources.reduce((s, r) => s + r.sessions, 0) || 1;
+  const colors = ['#2A9D8F', '#002060', '#E9A23B', '#5a7a78', '#c8e8e3', '#9bbfba'];
+
+  el.innerHTML = sources.map((s, i) => {
+    const pct = ((s.sessions / total) * 100).toFixed(1);
+    return `
+      <div class="source-row">
+        <div class="source-bar-wrap">
+          <div class="source-bar" style="width:${pct}%;background:${colors[i % colors.length]};"></div>
+        </div>
+        <div class="source-label">${s.channel}</div>
+        <div class="source-pct">${pct}%</div>
+      </div>`;
+  }).join('');
+}
+
+function renderPages(pages) {
+  const el = document.getElementById('ga-pages');
+  if (!el || !pages.length) return;
+  const maxViews = Math.max(...pages.map(p => p.views), 1);
+
+  el.innerHTML = pages.map(p => {
+    const pct = ((p.views / maxViews) * 100).toFixed(1);
+    return `
+      <div class="page-row">
+        <div class="page-path">${p.path}</div>
+        <div class="page-bar-wrap">
+          <div class="page-bar" style="width:${pct}%;"></div>
+        </div>
+        <div class="page-views">${Number(p.views).toLocaleString()}</div>
+      </div>`;
+  }).join('');
+}
 
 // ── Status bar ────────────────────────────────────────────────────────────────
 
@@ -430,3 +498,4 @@ document.querySelectorAll('.tab').forEach(tab => {
 loadState();
 loadLinkedinKpi();
 loadPersonalLinkedinKpis();
+loadAnalytics();
