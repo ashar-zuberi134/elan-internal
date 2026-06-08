@@ -12,8 +12,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Fetch followers & write to Supabase
+
+      - name: Fetch followers & write kpi.json
         run: node scripts/scrape-linkedin.js
+
+      - name: Commit & push kpi.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add kpi.json
+          git diff --cached --quiet || git commit -m "chore: update LinkedIn followers"
+          git push

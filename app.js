@@ -60,18 +60,25 @@ async function saveState() {
 
 // ── KPI Bar ───────────────────────────────────────────────────────────────────
 
+async function loadLinkedinKpi() {
+  try {
+    const res  = await fetch('kpi.json?t=' + Date.now());
+    const json = await res.json();
+    const li   = json.linkedin;
+    document.getElementById('kpi-linkedin').textContent =
+      li?.value != null ? Number(li.value).toLocaleString() : '—';
+    document.getElementById('kpi-linkedin-date').textContent =
+      li?.date ? `Updated ${li.date}` : 'Auto-updated daily';
+  } catch {
+    document.getElementById('kpi-linkedin-date').textContent = 'Auto-updated daily';
+  }
+}
+
 function renderKpis() {
   // Days since founding — calculated client-side, never stored
   const founded = new Date('2025-05-24');
   const days    = Math.floor((Date.now() - founded) / 86_400_000);
   document.getElementById('kpi-days').textContent = days.toLocaleString();
-
-  // LinkedIn followers — written by the GitHub Action via Supabase
-  const li = state.__kpi_linkedin;
-  document.getElementById('kpi-linkedin').textContent =
-    li ? Number(li.value).toLocaleString() : '—';
-  document.getElementById('kpi-linkedin-date').textContent =
-    li ? `Updated ${li.date}` : 'Auto-updated daily';
 
   // Website visits — manually updated via the modal
   const visits = state.__kpi_visits;
@@ -324,3 +331,4 @@ function setStatus(message, isError = false) {
 // ── Boot ──────────────────────────────────────────────────────────────────────
 
 loadState();
+loadLinkedinKpi();

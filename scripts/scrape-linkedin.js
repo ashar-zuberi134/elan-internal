@@ -1,10 +1,11 @@
+const fs = require('fs');
+const path = require('path');
+
 const RAPIDAPI_KEY = '258df5cc98mshcdc31725b41d656p184f11jsna354edbf6ed6';
-const SUPABASE_URL = 'https://crktlztfsyqbwnguqqjl.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNya3RsenRmc3lxYnduZ3VxcWpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MDI4NjYsImV4cCI6MjA5MzQ3ODg2Nn0.IGpfgsGw0NNadnfm8kA-yY6b3wW-9q5o0PRA8CI1LS4';
+const KPI_FILE = path.join(__dirname, '..', 'kpi.json');
 
 async function run() {
-  // 1. Fetch follower count from RapidAPI
-  const liRes = await fetch(
+  const res = await fetch(
     'https://fresh-linkedin-profile-data.p.rapidapi.com/get-company-by-linkedinurl' +
     '?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fcompany%2Felan-advisors%2F',
     {
@@ -15,42 +16,18 @@ async function run() {
       },
     }
   );
-  if (!liRes.ok) throw new Error(`RapidAPI error ${liRes.status}: ${await liRes.text()}`);
 
-  const { data } = await liRes.json();
+  if (!res.ok) throw new Error(`RapidAPI error ${res.status}: ${await res.text()}`);
+
+  const { data } = await res.json();
   const followers = data?.follower_count;
   if (followers == null) throw new Error('follower_count missing from API response');
-  console.log(`Followers: ${followers}`);
 
-  // 2. Fetch current Supabase row so we only overwrite the linkedin KPI
-  const getRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/mandala?id=eq.1&select=data`,
-    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-  );
-  const rows  = await getRes.json();
-  const state = rows?.[0]?.data ?? {};
+  const today = new Date().toISOString().slice(0, 10);
+  const kpi = { linkedin: { value: followers, date: today } };
 
-  // 3. Update only __kpi_linkedin
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  state.__kpi_linkedin = { value: followers, date: today };
-
-  // 4. Upsert back
-  const putRes = await fetch(`${SUPABASE_URL}/rest/v1/mandala`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates',
-    },
-    body: JSON.stringify({ id: 1, data: state }),
-  });
-
-  if (!putRes.ok && putRes.status !== 201 && putRes.status !== 204) {
-    throw new Error(`Supabase write failed: ${await putRes.text()}`);
-  }
-
-  console.log(`Done — ${followers} followers written for ${today}`);
+  fs.writeFileSync(KPI_FILE, JSON.stringify(kpi, null, 2) + '\n');
+  console.log(`Written ${followers} followers (${today}) to kpi.json`);
 }
 
 run().catch(err => { console.error(err.message); process.exit(1); });
