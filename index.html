@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elan — Goal Framework</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="page">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="page-title">Elan — Goal Framework</div>
+    <div class="elan-logo">
+      <div class="elan-e">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="elan-wordmark">ELAN</div>
+    </div>
+  </div>
+
+  <p class="sub">Click any cell to edit. Hover a cell to read reasoning.</p>
+
+  <!-- KPI Bar -->
+  <div class="kpi-bar">
+
+    <div class="kpi-card">
+      <div class="kpi-label">Company LinkedIn Followers</div>
+      <div class="kpi-value" id="kpi-linkedin">—</div>
+      <div class="kpi-meta">
+        <div class="kpi-updated" id="kpi-linkedin-date"></div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-label">Website Visits (Monthly)</div>
+      <div class="kpi-value" id="kpi-visits">—</div>
+      <div class="kpi-meta">
+        <div class="kpi-updated" id="kpi-visits-date"></div>
+        <button class="kpi-edit-btn" id="kpi-visits-btn">Update</button>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-label">Days Since Founding</div>
+      <div class="kpi-value" id="kpi-days">—</div>
+      <div class="kpi-meta">
+        <div class="kpi-updated">Since 24 May 2025</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div style="display:flex;align-items:center;gap:5px;">
+      <div class="legend-dot" style="background:#002060;"></div>
+      Near-term (&lt;12 months)
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;">
+      <div class="legend-dot" style="background:#2A9D8F;"></div>
+      Long-term (12+ months)
+    </div>
+    <span class="legend-sep">|</span>
+    <span>CEO = Yash &nbsp; Pres = Rohit &nbsp; CTO = Ashar</span>
+  </div>
+
+  <!-- Mandala grid (populated by app.js) -->
+  <div class="grid" id="grid"></div>
+
+  <!-- Cell editor panel -->
+  <div class="editor" id="editor">
+    <div class="editor-title">Edit cell</div>
+
+    <label for="e-label">Label</label>
+    <input id="e-label" type="text" maxlength="44" placeholder="1–3 words" />
+
+    <div class="editor-row" id="e-meta-row">
+      <div>
+        <label for="e-owner">Owner</label>
+        <select id="e-owner">
+          <option value="CEO">Yash (CEO)</option>
+          <option value="Pres">Rohit (Pres)</option>
+          <option value="CTO">Ashar (CTO)</option>
+          <option value="All">All</option>
+        </select>
+      </div>
+      <div>
+        <label for="e-term">Timeframe</label>
+        <select id="e-term">
+          <option value="N">Near-term (&lt;12 mo)</option>
+          <option value="L">Long-term (12+ mo)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="e-tip-wrap">
+      <label for="e-tip">Reasoning (optional)</label>
+      <textarea id="e-tip" placeholder="Why does this matter?"></textarea>
+    </div>
+
+    <div class="editor-btns">
+      <button class="btn btn--primary" id="e-save">Save</button>
+      <button class="btn btn--danger"  id="e-clear">Reset to default</button>
+      <button class="btn"              id="e-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Footer status -->
+  <div class="footer">
+    <div class="status" id="status"></div>
+  </div>
+
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

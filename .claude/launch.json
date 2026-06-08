@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mandala",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "3333", "/tmp/elan-mandala"],
+      "port": 3333
+    }
+  ]
+}
