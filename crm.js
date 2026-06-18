@@ -12,10 +12,24 @@ const SB = {
 };
 
 const TAGS = [
-  'SME / Client',
-  'Third Party Service',
-  'High Net Worth',
+  'Elan Lead',
+  'Buyer',
+  'SME Owner',
+  'Investment Banking',
+  'Partner',
+  'Connector',
+  'Private Equity',
   'Family Office',
+  'Regulatory / Compliance',
+  'Lawyer',
+  'Investor',
+  'Hub',
+  'Data Provider',
+  'Tech / AI',
+  'GTM Partner',
+  'PR / Marketing',
+  'Freight / Logistics',
+  'Network',
 ];
 
 const TOUCHPOINT_TYPES = ['Email', 'Call', 'Meeting', 'LinkedIn', 'WhatsApp', 'Note', 'Other'];
@@ -26,6 +40,24 @@ const SIDE_STYLES = {
 };
 
 const TAG_COLORS = {
+  'Elan Lead':             { bg: '#0D2B2A', text: '#E8F5F3' },
+  'Buyer':                 { bg: '#eaf7f0', text: '#1a7a4a' },
+  'SME Owner':             { bg: '#e8f4fd', text: '#1a6fa8' },
+  'Investment Banking':    { bg: '#f0eafd', text: '#6a3aad' },
+  'Partner':               { bg: '#fef3e2', text: '#a0600a' },
+  'Connector':             { bg: '#e8f5f3', text: '#2A9D8F' },
+  'Private Equity':        { bg: '#f0eafd', text: '#6a3aad' },
+  'Family Office':         { bg: '#f0eafd', text: '#6a3aad' },
+  'Regulatory / Compliance': { bg: '#fdf0f0', text: '#c0392b' },
+  'Lawyer':                { bg: '#fdf0f0', text: '#c0392b' },
+  'Investor':              { bg: '#eaf7f0', text: '#1a7a4a' },
+  'Hub':                   { bg: '#fef3e2', text: '#a0600a' },
+  'Data Provider':         { bg: '#e8f4fd', text: '#1a6fa8' },
+  'Tech / AI':             { bg: '#e8f5f3', text: '#2A9D8F' },
+  'GTM Partner':           { bg: '#fef3e2', text: '#a0600a' },
+  'PR / Marketing':        { bg: '#fef9e7', text: '#8a6a00' },
+  'Freight / Logistics':   { bg: '#e8f4fd', text: '#1a6fa8' },
+  'Network':               { bg: '#f4faf9', text: '#5a7a78' },
   'SME / Client':          { bg: '#e8f4fd', text: '#1a6fa8' },
   'Third Party Service':   { bg: '#fef3e2', text: '#a0600a' },
   'High Net Worth':        { bg: '#eaf7f0', text: '#1a7a4a' },
@@ -38,6 +70,8 @@ let contacts     = [];
 let activeFilter = null;   // tag filter
 let searchQuery  = '';
 let drawerContact = null;  // currently open contact
+let listPage     = 1;      // pagination
+const PAGE_SIZE  = 50;
 
 // ── Persistence ───────────────────────────────────────────────────────────────
 
@@ -109,9 +143,27 @@ function filteredContacts() {
   });
 }
 
+function contactRow(c) {
+  const latest = latestTouchpoint(c);
+  return `
+    <div class="crm-row" data-id="${c.id}">
+      <div class="crm-row-main">
+        <div class="crm-row-name">${c.name}</div>
+        <div class="crm-row-sub">${[c.position, c.company].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div class="crm-row-tags">${sideChip(c.side)}${(c.tags ?? []).map(tagChip).join('')}</div>
+      <div class="crm-row-latest">
+        ${latest
+          ? `<span class="crm-latest-type">${latest.type}</span><span class="crm-latest-date">${fmt(latest.date)}</span>`
+          : `<span class="crm-no-touch">No touchpoints</span>`}
+      </div>
+      <button class="crm-row-btn" data-id="${c.id}">View →</button>
+    </div>`;
+}
+
 export function renderList() {
   renderFilterBar();
-  const list   = document.getElementById('crm-list');
+  const list     = document.getElementById('crm-list');
   const filtered = filteredContacts();
 
   if (!filtered.length) {
@@ -119,26 +171,22 @@ export function renderList() {
     return;
   }
 
-  list.innerHTML = filtered.map(c => {
-    const latest = latestTouchpoint(c);
-    return `
-      <div class="crm-row" data-id="${c.id}">
-        <div class="crm-row-main">
-          <div class="crm-row-name">${c.name}</div>
-          <div class="crm-row-sub">${[c.position, c.company].filter(Boolean).join(' · ')}</div>
-        </div>
-        <div class="crm-row-tags">${sideChip(c.side)}${(c.tags ?? []).map(tagChip).join('')}</div>
-        <div class="crm-row-latest">
-          ${latest
-            ? `<span class="crm-latest-type">${latest.type}</span><span class="crm-latest-date">${fmt(latest.date)}</span>`
-            : `<span class="crm-no-touch">No touchpoints</span>`}
-        </div>
-        <button class="crm-row-btn" data-id="${c.id}">View →</button>
-      </div>`;
-  }).join('');
+  const showing = filtered.slice(0, listPage * PAGE_SIZE);
+  const remaining = filtered.length - showing.length;
 
-  list.querySelectorAll('[data-id]').forEach(el => {
+  list.innerHTML = showing.map(contactRow).join('') + (remaining > 0
+    ? `<div class="crm-load-more">
+         <button class="btn" id="crm-load-more-btn">Load ${Math.min(remaining, PAGE_SIZE)} more <span class="crm-load-more-count">(${remaining} remaining)</span></button>
+       </div>`
+    : `<div class="crm-list-footer">Showing all ${filtered.length.toLocaleString()} contacts</div>`);
+
+  list.querySelectorAll('.crm-row[data-id]').forEach(el => {
     el.addEventListener('click', () => openDrawer(el.dataset.id));
+  });
+
+  document.getElementById('crm-load-more-btn')?.addEventListener('click', () => {
+    listPage++;
+    renderList();
   });
 }
 
@@ -151,6 +199,7 @@ function renderFilterBar() {
   bar.querySelectorAll('[data-tag]').forEach(btn => {
     btn.addEventListener('click', () => {
       activeFilter = btn.dataset.tag === 'All' ? null : btn.dataset.tag;
+      listPage = 1;
       renderList();
     });
   });
@@ -527,7 +576,7 @@ async function dismissPending(id, items) {
 export function initCrm() {
   // Use delegation on document so elements don't need to exist at init time
   document.addEventListener('input', e => {
-    if (e.target.id === 'crm-search') { searchQuery = e.target.value; renderList(); }
+    if (e.target.id === 'crm-search') { searchQuery = e.target.value; listPage = 1; renderList(); }
   });
 
   document.addEventListener('click', e => {

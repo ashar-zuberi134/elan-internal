@@ -1229,6 +1229,23 @@ body {
 
 /* ── Live Tasks ── */
 
+.crm-load-more {
+  padding: 14px 0;
+  text-align: center;
+}
+
+.crm-load-more-count {
+  color: #9bbfba;
+  font-size: 10px;
+}
+
+.crm-list-footer {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 11px;
+  color: #9bbfba;
+}
+
 .tasks-toolbar {
   display: flex;
   justify-content: flex-end;
