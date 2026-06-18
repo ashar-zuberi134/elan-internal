@@ -158,15 +158,21 @@
       </div>
       <div class="ga-tooltip" id="ga-tooltip"></div>
 
-      <!-- Two charts side by side -->
-      <div class="metrics-grid metrics-grid--2" style="margin-bottom:12px;">
-        <div class="metric-card metric-card--chart">
-          <div class="metric-label" style="margin-bottom:16px;">Visitors per day — last 30 days</div>
+      <!-- Daily chart -->
+      <div class="metric-card metric-card--chart" style="margin-bottom:12px;">
+        <div class="metric-label" style="margin-bottom:16px;">Visitors per day — last 30 days</div>
+        <div class="chart-wrap">
           <canvas id="ga-spark"></canvas>
+          <div class="chart-hover-tip" id="ga-spark-tip"></div>
         </div>
-        <div class="metric-card metric-card--chart">
-          <div class="metric-label" style="margin-bottom:16px;">Visitors per week — last 3 months</div>
+      </div>
+
+      <!-- Weekly chart -->
+      <div class="metric-card metric-card--chart" style="margin-bottom:12px;">
+        <div class="metric-label" style="margin-bottom:16px;">Visitors per week — last 3 months</div>
+        <div class="chart-wrap">
           <canvas id="ga-weekly"></canvas>
+          <div class="chart-hover-tip" id="ga-weekly-tip"></div>
         </div>
       </div>
 

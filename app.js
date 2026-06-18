@@ -410,13 +410,13 @@ function renderAnalytics({ summary, daily, weekly, sources, pages, countries }) 
   renderCountries(countries);
 }
 
-function drawBarChart(canvas, entries, { color = '#2A9D8F', labelKey = 'label', valueKey = 'users' } = {}) {
+function drawBarChart(canvas, tipEl, entries, { color = '#2A9D8F', labelKey = 'label', valueKey = 'users' } = {}) {
   if (!canvas || !entries.length) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const W   = canvas.parentElement.clientWidth;
-  const H   = 180;
-  const PAD = { top: 24, right: 8, bottom: 32, left: 28 };
+  const H   = 240;
+  const PAD = { top: 28, right: 12, bottom: 36, left: 36 };
 
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
@@ -429,16 +429,16 @@ function drawBarChart(canvas, entries, { color = '#2A9D8F', labelKey = 'label', 
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top - PAD.bottom;
   const n      = vals.length;
-  const gap    = 2;
-  const barW   = Math.max(3, (chartW - gap * (n - 1)) / n);
+  const gap    = 3;
+  const barW   = Math.max(4, (chartW - gap * (n - 1)) / n);
 
-  // Gridlines + y-axis labels
-  [0, 0.5, 1].forEach(frac => {
+  // Grid lines + y-axis labels
+  [0, 0.25, 0.5, 0.75, 1].forEach(frac => {
     const y = PAD.top + chartH * (1 - frac);
     ctx.fillStyle = '#9bbfba';
-    ctx.font = '9px IBM Plex Sans, sans-serif';
+    ctx.font = '10px IBM Plex Sans, sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(Math.round(maxVal * frac), PAD.left - 4, y + 3);
+    ctx.fillText(Math.round(maxVal * frac), PAD.left - 6, y + 3.5);
     ctx.strokeStyle = '#e8f5f3';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -447,40 +447,60 @@ function drawBarChart(canvas, entries, { color = '#2A9D8F', labelKey = 'label', 
     ctx.stroke();
   });
 
-  // Bars + value on top
+  // Bars
   vals.forEach((v, i) => {
-    const barH = Math.max(v > 0 ? 2 : 0, (v / maxVal) * chartH);
+    const barH = Math.max(v > 0 ? 3 : 0, (v / maxVal) * chartH);
     const x    = PAD.left + i * (barW + gap);
     const y    = PAD.top + chartH - barH;
     ctx.fillStyle = v === 0 ? '#e8f5f3' : color;
     ctx.beginPath();
-    ctx.roundRect(x, y, barW, Math.max(barH, 1), 2);
+    ctx.roundRect(x, y, barW, Math.max(barH, 1), 3);
     ctx.fill();
-    if (v > 0 && barW >= 16) {
-      ctx.fillStyle = '#0D2B2A';
-      ctx.font = '9px IBM Plex Sans, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(v, x + barW / 2, y - 3);
-    }
   });
 
   // X-axis labels
-  const step = Math.ceil(n / 7);
+  const step = Math.ceil(n / 9);
   ctx.fillStyle = '#9bbfba';
-  ctx.font = '9px IBM Plex Sans, sans-serif';
+  ctx.font = '10px IBM Plex Sans, sans-serif';
   ctx.textAlign = 'center';
   entries.forEach((d, i) => {
     if (i % step !== 0 && i !== n - 1) return;
     const x = PAD.left + i * (barW + gap) + barW / 2;
-    ctx.fillText(d[labelKey], x, H - 6);
+    ctx.fillText(d[labelKey], x, H - 8);
   });
+
+  // Hover interaction
+  const getBarIndex = clientX => {
+    const rect = canvas.getBoundingClientRect();
+    const relX = clientX - rect.left - PAD.left;
+    const i = Math.floor(relX / (barW + gap));
+    return i >= 0 && i < n ? i : -1;
+  };
+
+  const showTip = (clientX, clientY, i) => {
+    if (!tipEl || i < 0) { if (tipEl) tipEl.style.display = 'none'; return; }
+    const e = entries[i];
+    tipEl.textContent = `${e[labelKey]}: ${e[valueKey]} visitor${e[valueKey] !== 1 ? 's' : ''}`;
+    const wrap = canvas.parentElement;
+    const wrapRect = wrap.getBoundingClientRect();
+    tipEl.style.display = 'block';
+    tipEl.style.left = Math.min(clientX - wrapRect.left + 12, wrapRect.width - 160) + 'px';
+    tipEl.style.top  = (clientY - wrapRect.top - 36) + 'px';
+  };
+
+  canvas.onmousemove = e => showTip(e.clientX, e.clientY, getBarIndex(e.clientX));
+  canvas.onmouseleave = () => { if (tipEl) tipEl.style.display = 'none'; };
+  canvas.ontouchmove = e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    showTip(t.clientX, t.clientY, getBarIndex(t.clientX));
+  };
+  canvas.ontouchend = () => { if (tipEl) tipEl.style.display = 'none'; };
 }
 
 function renderDailyChart(daily) {
-  // Fill in every day for the last 30 days (GA omits days with 0 users)
   const map = {};
   daily.forEach(d => { map[d.date] = d.users; });
-
   const filled = [];
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
@@ -488,16 +508,13 @@ function renderDailyChart(daily) {
     const key = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
     filled.push({ label: `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`, users: map[key] ?? 0 });
   }
-  drawBarChart(document.getElementById('ga-spark'), filled, { color: '#2A9D8F' });
+  drawBarChart(document.getElementById('ga-spark'), document.getElementById('ga-spark-tip'), filled, { color: '#2A9D8F' });
 }
 
 function renderWeeklyChart(weekly) {
   if (!weekly?.length) return;
-  const entries = weekly.map(w => ({
-    label: `W${w.week}`,
-    users: w.users,
-  }));
-  drawBarChart(document.getElementById('ga-weekly'), entries, { color: '#002060' });
+  const entries = weekly.map(w => ({ label: `W${w.week}`, users: w.users }));
+  drawBarChart(document.getElementById('ga-weekly'), document.getElementById('ga-weekly-tip'), entries, { color: '#002060' });
 }
 
 function renderSources(sources) {
