@@ -201,12 +201,15 @@ function buildCell({ text = '', variant = '', owner = '', tip = '', key = null, 
   dot.className = 'tip-dot';
   div.appendChild(dot);
 
-  // Owner tag (only on editable data cells)
+  // Owner tag + person accent stripe
   if (owner) {
     const tag = document.createElement('div');
     tag.className = 'owner-tag';
     tag.textContent = owner;
     div.appendChild(tag);
+
+    const ownerClass = { CEO: 'cell--yash', Pres: 'cell--rohit', CTO: 'cell--ashar' }[owner];
+    if (ownerClass) div.classList.add(ownerClass);
   }
 
   // Click handler

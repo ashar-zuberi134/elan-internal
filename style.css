@@ -137,6 +137,13 @@ body {
   color: #9bbfba;
 }
 
+.legend-stripe {
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 /* ── Mandala Grid ── */
 
 .grid {
@@ -199,7 +206,7 @@ body {
 }
 
 .cell--near {
-  background: #002060;
+  background: #1a3a6e;
   color: #ffffff;
   cursor: pointer;
 }
@@ -209,6 +216,11 @@ body {
   color: #ffffff;
   cursor: pointer;
 }
+
+/* Person accent — coloured left border stripe */
+.cell--yash  { border-left: 4px solid #F4A261; }
+.cell--rohit { border-left: 4px solid #E76F51; }
+.cell--ashar { border-left: 4px solid #a78fef; }
 
 .cell--empty {
   background: #fff;
