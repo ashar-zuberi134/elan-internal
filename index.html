@@ -19,6 +19,7 @@
       <button class="tab tab--active" data-tab="mandala">Mandala</button>
       <button class="tab" data-tab="metrics">Metrics</button>
       <button class="tab" data-tab="crm">CRM</button>
+      <button class="tab" data-tab="tasks">Live Tasks</button>
     </nav>
   </header>
 
@@ -217,6 +218,16 @@
       <div id="crm-pending-list"></div>
     </div>
 
+  </main>
+
+  <!-- ── Tab: Live Tasks ── -->
+  <main class="page tab-panel" id="tab-tasks">
+    <div class="tasks-toolbar">
+      <button class="btn btn--primary" id="tasks-add-btn">+ Add Task</button>
+    </div>
+    <div class="tasks-board" id="tasks-board">
+      <!-- rendered by tasks.js -->
+    </div>
   </main>
 
   <!-- ── CRM Drawer overlay ── -->

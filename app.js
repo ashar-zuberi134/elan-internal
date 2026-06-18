@@ -1,5 +1,6 @@
 import { BLOCK_ORDER, SURROUND_KEYS, SURROUND_DISPLAY, CORE_LABEL, DEFAULTS } from './data.js';
 import { initCrm, renderList as crmRenderList } from './crm.js';
+import { initTasks } from './tasks.js';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -495,6 +496,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 initCrm();
+initTasks();
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 
