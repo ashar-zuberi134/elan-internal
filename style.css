@@ -1971,6 +1971,41 @@ body {
   border: 1px solid #e6f0ee;
 }
 
+.gtm-channel-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.gtm-channel-badge--email  { background: #e8f0fe; color: #1a56db; }
+.gtm-channel-badge--direct { background: #fef3c7; color: #92400e; }
+
+.gtm-profile-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.gtm-profile-val  { font-size: 16px; font-weight: 700; color: #1a3a36; }
+.gtm-profile-lbl  { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: #9bbfba; }
+
+.gtm-drawer-profile {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  background: #f4faf9;
+  border-radius: 10px;
+  padding: 14px 12px;
+  text-align: center;
+}
+
+.gtm-drawer-address {
+  font-size: 12px;
+  color: #5a7a78;
+  margin-top: -8px;
+}
+
+.gtm-step-cell { text-align: center; vertical-align: middle; }
+.gtm-step-cell .gtm-channel-badge { display: block; margin-bottom: 4px; }
+
 .gtm-action-btn {
   padding: 5px 14px;
   border-radius: 6px;

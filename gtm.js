@@ -33,17 +33,15 @@ function activeCampaign() {
 }
 
 function stepBadge(status, step) {
-  const labels = { sent: 'Sent', connected: 'Connected', called: 'Called', pending: 'Pending', skipped: 'Skipped' };
-  const colours = {
-    sent:      'gtm-badge--sent',
-    connected: 'gtm-badge--sent',
-    called:    'gtm-badge--sent',
-    pending:   'gtm-badge--pending',
-    skipped:   'gtm-badge--skipped',
-  };
-  const label = labels[status] ?? status;
-  const cls   = colours[status] ?? 'gtm-badge--pending';
-  return `<span class="gtm-badge ${cls}" data-step="${step}">${label}</span>`;
+  const labels  = { sent: 'Sent', connected: 'Connected', called: 'Called', pending: '—', skipped: 'Skipped' };
+  const colours = { sent: 'gtm-badge--sent', connected: 'gtm-badge--sent', called: 'gtm-badge--sent', pending: 'gtm-badge--pending', skipped: 'gtm-badge--skipped' };
+  return `<span class="gtm-badge ${colours[status] ?? 'gtm-badge--pending'}" data-step="${step}">${labels[status] ?? status}</span>`;
+}
+
+function channelBadge(channelAngle) {
+  if (!channelAngle) return '';
+  const isDirect = channelAngle.toLowerCase().includes('direct mail');
+  return `<span class="gtm-channel-badge ${isDirect ? 'gtm-channel-badge--direct' : 'gtm-channel-badge--email'}">${isDirect ? 'Direct Mail' : 'Email'}</span>`;
 }
 
 // ── Stats bar ─────────────────────────────────────────────────────────────────
@@ -84,7 +82,10 @@ function renderTable() {
       </td>
       <td class="gtm-revenue">${l.revenue}</td>
       <td class="gtm-growth">${l.growth}</td>
-      <td class="gtm-step-cell">${stepBadge(l.steps.email.status, 'email')}</td>
+      <td class="gtm-step-cell">
+        ${channelBadge(l.steps.email.channelAngle)}
+        ${stepBadge(l.steps.email.status, 'email')}
+      </td>
       <td class="gtm-step-cell">${stepBadge(l.steps.linkedin.status, 'linkedin')}</td>
       <td class="gtm-step-cell">${stepBadge(l.steps.phone.status, 'phone')}</td>
     </tr>`).join('');
@@ -126,12 +127,23 @@ function openDrawer(leadId) {
     <div class="gtm-drawer-header">
       <div>
         <div class="gtm-drawer-company">${lead.company}</div>
-        <div class="gtm-drawer-sub">${lead.sector} · ${lead.revenue} · ${lead.growth} growth</div>
+        <div class="gtm-drawer-sub">${lead.sector} · ${lead.years ? lead.years + ' yrs' : ''} · ${lead.period ?? ''}</div>
       </div>
       <button class="gtm-drawer-close" id="gtm-drawer-close">✕</button>
     </div>
 
     <div class="gtm-drawer-body">
+
+      <!-- Company profile -->
+      <div class="gtm-drawer-profile">
+        <div class="gtm-profile-stat"><span class="gtm-profile-val">${lead.revenue || '—'}</span><span class="gtm-profile-lbl">Revenue</span></div>
+        <div class="gtm-profile-stat"><span class="gtm-profile-val">${lead.growth || '—'}</span><span class="gtm-profile-lbl">Growth</span></div>
+        <div class="gtm-profile-stat"><span class="gtm-profile-val">${lead.employees || '—'}</span><span class="gtm-profile-lbl">Employees</span></div>
+        <div class="gtm-profile-stat"><span class="gtm-profile-val">${lead.years ? lead.years + ' yrs' : '—'}</span><span class="gtm-profile-lbl">Est.</span></div>
+      </div>
+      ${lead.address ? `<div class="gtm-drawer-address">📍 ${lead.address}</div>` : ''}
+      ${lead.website ? `<div><a class="gtm-link" href="${lead.website}" target="_blank">${lead.website}</a></div>` : ''}
+
       <div class="gtm-drawer-section">
         <div class="gtm-drawer-label">Contact</div>
         <div class="gtm-drawer-contact-name">${lead.contactName}</div>
@@ -143,10 +155,11 @@ function openDrawer(leadId) {
 
       ${lead.description ? `<div class="gtm-drawer-section"><div class="gtm-drawer-label">About</div><div class="gtm-drawer-desc">${lead.description}</div></div>` : ''}
 
-      <!-- Step 1: Email -->
+      <!-- Step 1: Email / Direct Mail -->
       <div class="gtm-drawer-step">
         <div class="gtm-drawer-step-header">
-          <span class="gtm-drawer-step-title">Step 1 · Email</span>
+          <span class="gtm-drawer-step-title">Step 1</span>
+          ${channelBadge(lead.steps.email.channelAngle)}
           ${stepBadge(lead.steps.email.status, 'email')}
           ${stepAction('email', lead.steps.email.status)}
         </div>
