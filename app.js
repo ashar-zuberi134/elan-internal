@@ -362,7 +362,7 @@ document.getElementById('e-cancel').addEventListener('click', closeEditor);
 
 // ── Google Analytics ──────────────────────────────────────────────────────────
 
-const GA_CACHE_KEY = 'elan_ga_data';
+const GA_CACHE_KEY = 'elan_ga_data_v2'; // v2: switched daily metric to activeUsers
 
 async function loadAnalytics() {
   const badge = document.getElementById('ga-status');
@@ -563,6 +563,15 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('tab-panel--active'));
     tab.classList.add('tab--active');
     document.getElementById('tab-' + tab.dataset.tab).classList.add('tab-panel--active');
+
+    // Re-render canvas chart now that the tab is visible and has real width
+    if (tab.dataset.tab === 'metrics') {
+      try {
+        const cached = JSON.parse(localStorage.getItem(GA_CACHE_KEY) || 'null');
+        if (cached?.daily) renderSparkline(cached.daily);
+        if (cached?.countries) renderCountries(cached.countries);
+      } catch { /* ignore */ }
+    }
   });
 });
 
