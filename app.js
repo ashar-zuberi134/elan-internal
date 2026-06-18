@@ -2,6 +2,7 @@ import { BLOCK_ORDER, SURROUND_KEYS, SURROUND_DISPLAY, CORE_LABEL, DEFAULTS } fr
 import { initCrm, renderList as crmRenderList } from './crm.js';
 import { initTasks } from './tasks.js';
 import { initEnrichment } from './enrichment.js';
+import { initGtm } from './gtm.js';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -633,6 +634,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 initCrm();
 initTasks();
 initEnrichment();
+initGtm();
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 

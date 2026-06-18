@@ -21,6 +21,7 @@
       <button class="tab" data-tab="crm">CRM</button>
       <button class="tab" data-tab="tasks">Live Tasks</button>
       <button class="tab" data-tab="finder">Contact Finder</button>
+      <button class="tab" data-tab="gtm">GTM</button>
     </nav>
   </header>
 
@@ -288,6 +289,38 @@
       <div id="enrich-bulk-table"></div>
     </section>
 
+  </main>
+
+  <!-- ── Tab: GTM ── -->
+  <main class="page tab-panel" id="tab-gtm">
+    <div class="gtm-header">
+      <div class="gtm-campaign-selector">
+        <select class="gtm-campaign-select" id="gtm-campaign-select"></select>
+      </div>
+      <div class="gtm-stats" id="gtm-stats"></div>
+    </div>
+    <div class="gtm-table-wrap">
+      <table class="gtm-table" id="gtm-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Company</th>
+            <th>Sector</th>
+            <th>Contact</th>
+            <th>Revenue</th>
+            <th>Growth</th>
+            <th class="gtm-step-col">Step 1 · Email</th>
+            <th class="gtm-step-col">Step 2 · LinkedIn</th>
+            <th class="gtm-step-col">Step 3 · Phone</th>
+          </tr>
+        </thead>
+        <tbody id="gtm-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Lead detail drawer -->
+    <div class="gtm-overlay" id="gtm-overlay"></div>
+    <aside class="gtm-drawer" id="gtm-drawer"></aside>
   </main>
 
   <!-- ── CRM Drawer overlay ── -->
