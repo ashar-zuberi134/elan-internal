@@ -58,7 +58,7 @@ exports.handler = async () => {
     const token = await getAccessToken(sa);
 
     // Run all four reports in parallel
-    const [summary, daily, sources, pages] = await Promise.all([
+    const [summary, daily, sources, pages, countries] = await Promise.all([
 
       // 1. Summary — sessions, users, engagement rate (last 30 days)
       runReport(token, {
@@ -97,6 +97,15 @@ exports.handler = async () => {
         orderBys:   [{ metric: { metricName: 'screenPageViews' }, desc: true }],
         limit: 5,
       }),
+
+      // 5. Users by country
+      runReport(token, {
+        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dimensions: [{ name: 'country' }],
+        metrics:    [{ name: 'activeUsers' }],
+        orderBys:   [{ metric: { metricName: 'activeUsers' }, desc: true }],
+        limit: 8,
+      }),
     ]);
 
     // Parse summary row
@@ -127,10 +136,16 @@ exports.handler = async () => {
       views: parseInt(row.metricValues[0].value),
     }));
 
+    // Parse countries
+    const countriesData = (countries.rows ?? []).map(row => ({
+      country: row.dimensionValues[0].value,
+      users:   parseInt(row.metricValues[0].value),
+    }));
+
     return {
       statusCode: 200,
       headers:    cors,
-      body: JSON.stringify({ summary: summaryData, daily: dailyData, sources: sourcesData, pages: pagesData }),
+      body: JSON.stringify({ summary: summaryData, daily: dailyData, sources: sourcesData, pages: pagesData, countries: countriesData }),
     };
   } catch (err) {
     return {

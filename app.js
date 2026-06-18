@@ -393,7 +393,7 @@ async function loadAnalytics() {
   }
 }
 
-function renderAnalytics({ summary, daily, sources, pages }) {
+function renderAnalytics({ summary, daily, sources, pages, countries }) {
   const pct  = v => `${(v * 100).toFixed(1)}%`;
   const num  = v => Number(v).toLocaleString();
 
@@ -406,6 +406,7 @@ function renderAnalytics({ summary, daily, sources, pages }) {
   renderSparkline(daily);
   renderSources(sources);
   renderPages(pages);
+  renderCountries(countries);
 }
 
 function renderSparkline(daily) {
@@ -514,6 +515,31 @@ function renderPages(pages) {
           <div class="page-bar" style="width:${pct}%;"></div>
         </div>
         <div class="page-views">${Number(p.views).toLocaleString()}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderCountries(countries) {
+  const el = document.getElementById('ga-countries');
+  if (!el || !countries?.length) return;
+  const maxUsers = Math.max(...countries.map(c => c.users), 1);
+  const flags = { 'United States': '🇺🇸', 'United Kingdom': '🇬🇧', 'Germany': '🇩🇪',
+    'France': '🇫🇷', 'Canada': '🇨🇦', 'Australia': '🇦🇺', 'India': '🇮🇳',
+    'Netherlands': '🇳🇱', 'Ireland': '🇮🇪', 'Singapore': '🇸🇬', 'Taiwan': '🇹🇼',
+    'Japan': '🇯🇵', 'Sweden': '🇸🇪', 'Switzerland': '🇨🇭', 'Spain': '🇪🇸',
+    'Italy': '🇮🇹', 'Brazil': '🇧🇷', 'China': '🇨🇳', 'South Korea': '🇰🇷',
+    'United Arab Emirates': '🇦🇪', 'Pakistan': '🇵🇰', 'Nigeria': '🇳🇬' };
+
+  el.innerHTML = countries.map(c => {
+    const pct  = ((c.users / maxUsers) * 100).toFixed(1);
+    const flag = flags[c.country] ?? '🌐';
+    return `
+      <div class="page-row">
+        <div class="page-path">${flag} ${c.country}</div>
+        <div class="page-bar-wrap">
+          <div class="page-bar" style="width:${pct}%;background:#002060;"></div>
+        </div>
+        <div class="page-views">${c.users}</div>
       </div>`;
   }).join('');
 }
