@@ -1,4 +1,15 @@
-const STORAGE_KEY = 'elan_tasks';
+const SUPABASE_URL = 'https://sofzlqjszuskvwlkxvhr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvZnpscWpzenVza3Z3bGt4dmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTcyMjYsImV4cCI6MjA5NjQ3MzIyNn0.SGkwZg1k89w5qxixLqfckCuVoPY5UPX4Af7QIc8bVFQ';
+const TASKS_TABLE  = 'tasks';
+const TASKS_ROW_ID = 1;
+
+const SB_HEADERS = {
+  apikey:         SUPABASE_KEY,
+  Authorization:  `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json',
+  Prefer:         'resolution=merge-duplicates',
+};
+
 const DONE_SHOW_LIMIT = 3;
 const PEOPLE = [
   { id: 'ashar', label: 'Ashar', role: 'CTO' },
@@ -7,20 +18,40 @@ const PEOPLE = [
 ];
 
 let tasks = [];
-// track which person columns have "show all done" expanded
 const doneExpanded = { ashar: false, rohit: false, yash: false };
 
-function load() {
-  try { tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { tasks = []; }
+// ── Supabase persistence ──────────────────────────────────────────────────────
+
+async function loadFromSupabase() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/${TASKS_TABLE}?id=eq.${TASKS_ROW_ID}&select=data`,
+      { headers: SB_HEADERS }
+    );
+    const rows = await res.json();
+    tasks = rows[0]?.data?.tasks ?? [];
+  } catch {
+    tasks = [];
+  }
 }
 
-function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+async function saveToSupabase() {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${TASKS_TABLE}`, {
+      method: 'POST',
+      headers: SB_HEADERS,
+      body: JSON.stringify({ id: TASKS_ROW_ID, data: { tasks } }),
+    });
+  } catch (err) {
+    console.error('Tasks save failed:', err);
+  }
 }
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
 
 function dueBadge(dueDate) {
   if (!dueDate) return '';
@@ -58,9 +89,9 @@ function renderBoard() {
   if (!board) return;
 
   board.innerHTML = PEOPLE.map(person => {
-    const mine   = tasks.filter(t => t.person === person.id);
-    const active = mine.filter(t => t.status === 'active');
-    const done   = mine.filter(t => t.status === 'done');
+    const mine    = tasks.filter(t => t.person === person.id);
+    const active  = mine.filter(t => t.status === 'active');
+    const done    = mine.filter(t => t.status === 'done');
     const expanded = doneExpanded[person.id];
     const visible  = expanded ? done : done.slice(0, DONE_SHOW_LIMIT);
     const hidden   = done.length - DONE_SHOW_LIMIT;
@@ -93,6 +124,8 @@ function renderBoard() {
       </div>`;
   }).join('');
 }
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
 
 function openModal(existing = null) {
   const isEdit = !!existing;
@@ -150,7 +183,7 @@ function openModal(existing = null) {
   backdrop.querySelector('#task-modal-cancel').addEventListener('click', close);
   backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
 
-  backdrop.querySelector('#task-modal-save').addEventListener('click', () => {
+  backdrop.querySelector('#task-modal-save').addEventListener('click', async () => {
     const title = backdrop.querySelector('#task-title-input').value.trim();
     if (!title) { backdrop.querySelector('#task-title-input').focus(); return; }
     if (!isEdit && !selectedPerson) {
@@ -167,17 +200,40 @@ function openModal(existing = null) {
     } else {
       tasks.push({ id: uid(), person: selectedPerson, title, description, dueDate, status: 'active', createdAt: new Date().toISOString() });
     }
-    save();
+
+    await saveToSupabase();
     renderBoard();
     close();
   });
 }
 
-export function initTasks() {
-  load();
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+export async function initTasks() {
+  const board = document.getElementById('tasks-board');
+  if (board) board.innerHTML = '<div class="tasks-empty" style="padding:32px;text-align:center;">Loading…</div>';
+
+  await loadFromSupabase();
+
+  // One-time migration: if Supabase is empty but localStorage has tasks, push them up
+  if (tasks.length === 0) {
+    try {
+      const local = JSON.parse(localStorage.getItem('elan_tasks') || '[]');
+      if (local.length > 0) {
+        tasks = local;
+        await saveToSupabase();
+        localStorage.removeItem('elan_tasks');
+        console.log(`Migrated ${local.length} tasks from localStorage to Supabase.`);
+      }
+    } catch {}
+  } else {
+    // Supabase already has data — clear any stale local copy
+    localStorage.removeItem('elan_tasks');
+  }
+
   renderBoard();
 
-  document.addEventListener('click', e => {
+  document.addEventListener('click', async e => {
     if (e.target.id === 'tasks-add-btn') { openModal(); return; }
 
     const action = e.target.dataset.action;
@@ -199,7 +255,7 @@ export function initTasks() {
     if (action === 'reopen')   { task.status = 'active'; delete task.completedAt; }
     if (action === 'delete')   { tasks = tasks.filter(t => t.id !== id); }
 
-    save();
+    await saveToSupabase();
     renderBoard();
   });
 }
