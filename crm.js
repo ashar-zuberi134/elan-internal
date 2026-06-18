@@ -12,7 +12,6 @@ const SB = {
 };
 
 const TAGS = [
-  'Elan Lead',
   'Buyer',
   'SME Owner',
   'Investment Banking',
@@ -29,7 +28,6 @@ const TAGS = [
   'GTM Partner',
   'PR / Marketing',
   'Freight / Logistics',
-  'Network',
 ];
 
 const TOUCHPOINT_TYPES = ['Email', 'Call', 'Meeting', 'LinkedIn', 'WhatsApp', 'Note', 'Other'];
