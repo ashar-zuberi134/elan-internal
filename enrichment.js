@@ -9,38 +9,65 @@ async function lookupContact(firstName, lastName, company) {
   return res.json();
 }
 
-// ── Single lookup ─────────────────────────────────────────────────────────────
+// ── Email status badge ────────────────────────────────────────────────────────
 
-function renderSingleResult(data, container) {
-  if (!data.found) {
-    container.innerHTML = `<div class="enrich-empty">No match found in Apollo for this contact.</div>`;
-    return;
-  }
-  container.innerHTML = `
-    <div class="enrich-result-card">
-      <div class="enrich-result-name">${data.name}</div>
-      ${data.title   ? `<div class="enrich-result-title">${data.title} · ${data.company}</div>` : ''}
-      <div class="enrich-result-rows">
-        ${resultRow('Email',    data.email,    data.email    ? `mailto:${data.email}` : null, 'email')}
-        ${resultRow('Phone',    data.phone,    data.phone    ? `tel:${data.phone}`    : null, 'phone')}
-        ${resultRow('LinkedIn', data.linkedin ? 'View profile' : null, data.linkedin, 'linkedin')}
-      </div>
-    </div>`;
+function emailStatusBadge(status) {
+  if (!status) return '';
+  const map = {
+    verified: { label: 'Verified',  bg: '#eaf7f0', color: '#1a7a4a' },
+    likely:   { label: 'Likely',    bg: '#fef9e7', color: '#a0600a' },
+    guessed:  { label: 'Guessed',   bg: '#fdf0f0', color: '#c0392b' },
+  };
+  const s = map[status] ?? { label: status, bg: '#f4faf9', color: '#5a7a78' };
+  return `<span class="enrich-status-badge" style="background:${s.bg};color:${s.color};">${s.label}</span>`;
 }
 
-function resultRow(label, display, href, type) {
+// ── Single lookup ─────────────────────────────────────────────────────────────
+
+function resultRow(label, display, href, copyValue, extra) {
   if (!display) return `
     <div class="enrich-row enrich-row--missing">
       <span class="enrich-row-label">${label}</span>
       <span class="enrich-row-value enrich-row-value--none">Not found</span>
     </div>`;
+  const link = href
+    ? `<a href="${href}" target="_blank" class="enrich-link">${display}</a>`
+    : `<span>${display}</span>`;
   return `
     <div class="enrich-row">
       <span class="enrich-row-label">${label}</span>
       <span class="enrich-row-value">
-        <a href="${href}" target="_blank" class="enrich-link">${display}</a>
-        <button class="enrich-copy" data-copy="${display === 'View profile' ? href : display}" title="Copy">⎘</button>
+        ${link}
+        ${extra ?? ''}
+        ${copyValue ? `<button class="enrich-copy" data-copy="${copyValue}" title="Copy">⎘</button>` : ''}
       </span>
+    </div>`;
+}
+
+function renderSingleResult(data, container) {
+  if (!data.found) {
+    container.innerHTML = `<div class="enrich-empty">No match found in Apollo — person may not be in their database (common for small UK SME owners).</div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="enrich-result-card">
+      <div class="enrich-result-name">${data.name}</div>
+      ${data.title ? `<div class="enrich-result-title">${data.title}${data.company ? ` · ${data.company}` : ''}</div>` : ''}
+      <div class="enrich-result-rows">
+        ${resultRow('Email',
+            data.email, `mailto:${data.email}`, data.email,
+            emailStatusBadge(data.email_status))}
+        ${resultRow('LinkedIn',
+            data.linkedin ? 'View profile' : null, data.linkedin, data.linkedin)}
+        ${resultRow('Location',
+            data.location, null, data.location)}
+        ${resultRow('Switchboard',
+            data.org_phone, `tel:${data.org_phone}`, data.org_phone)}
+      </div>
+      <div class="enrich-phone-note">
+        ℹ Phone shown is the company switchboard. Direct dials require Apollo phone credits + webhook setup.
+      </div>
     </div>`;
 }
 
@@ -56,7 +83,7 @@ function initSingleLookup() {
     const company = document.getElementById('enrich-company').value.trim();
     if (!first || !last || !company) return;
 
-    result.innerHTML  = '';
+    result.innerHTML = '';
     spinner.style.display = 'block';
     try {
       const data = await lookupContact(first, last, company);
@@ -75,13 +102,12 @@ function parseCSV(text) {
   const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
   if (lines.length < 2) throw new Error('CSV must have a header row and at least one data row.');
   const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z_]/g, ''));
-  const rows   = lines.slice(1).map(line => {
+  const rows = lines.slice(1).map(line => {
     const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-    const obj  = {};
+    const obj = {};
     header.forEach((h, i) => { obj[h] = cols[i] ?? ''; });
     return obj;
   });
-  // normalise column names
   return rows.map(r => ({
     first_name:        r.first_name || r.firstname || r.first || '',
     last_name:         r.last_name  || r.lastname  || r.last  || '',
@@ -90,26 +116,25 @@ function parseCSV(text) {
 }
 
 function buildXLSX(rows) {
-  // rows: array of objects with header keys
-  const headers = ['First Name', 'Last Name', 'Company', 'Title', 'Email', 'Phone', 'LinkedIn'];
+  const headers = ['First Name', 'Last Name', 'Company', 'Title', 'Email', 'Email Status', 'LinkedIn', 'Location', 'Switchboard Phone'];
   const data = [headers, ...rows.map(r => [
-    r.first_name, r.last_name, r.company, r.title ?? '', r.email ?? '', r.phone ?? '', r.linkedin ?? '',
+    r.first_name, r.last_name, r.company,
+    r.title ?? '', r.email ?? '', r.email_status ?? '',
+    r.linkedin ?? '', r.location ?? '', r.org_phone ?? '',
   ])];
 
-  // Build CSV string as fallback (SheetJS loaded separately)
   if (window.XLSX) {
     const wb = window.XLSX.utils.book_new();
     const ws = window.XLSX.utils.aoa_to_sheet(data);
-    ws['!cols'] = [12,12,18,20,28,16,36].map(w => ({ wch: w }));
+    ws['!cols'] = [12, 12, 18, 22, 30, 13, 36, 24, 18].map(w => ({ wch: w }));
     window.XLSX.utils.book_append_sheet(wb, ws, 'Contacts');
-    window.XLSX.writeFile(wb, 'elan-contacts.xlsx');
+    window.XLSX.writeFile(wb, 'elan-enriched-contacts.xlsx');
   } else {
-    // fallback: download as CSV
-    const csv = data.map(r => r.map(v => `"${(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const csv = data.map(r => r.map(v => `"${(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'elan-contacts.csv';
+    a.download = 'elan-enriched-contacts.csv';
     a.click();
   }
 }
@@ -143,49 +168,51 @@ function initBulkLookup() {
     exportBtn.style.display = 'none';
     runBtn.disabled = true;
 
-    // Table header
     tableEl.innerHTML = `
       <div class="enrich-table-head">
         <div>Name</div><div>Company</div><div>Title</div>
-        <div>Email</div><div>Phone</div><div>LinkedIn</div>
+        <div>Email</div><div>Status</div><div>LinkedIn</div><div>Switchboard</div>
       </div>`;
 
     for (let i = 0; i < contacts.length; i++) {
       const c = contacts[i];
-      progressEl.textContent = `Looking up ${i + 1} of ${contacts.length}…`;
+      progressEl.textContent = `Looking up ${i + 1} of ${contacts.length} — ${c.first_name} ${c.last_name}…`;
 
-      let result = { found: false, first_name: c.first_name, last_name: c.last_name, company: c.organization_name };
+      let result = { found: false };
       try {
-        const data = await lookupContact(c.first_name, c.last_name, c.organization_name);
-        if (data.found) result = { ...data, first_name: c.first_name, last_name: c.last_name };
+        result = await lookupContact(c.first_name, c.last_name, c.organization_name);
       } catch {}
 
-      bulkResults.push({
-        first_name: c.first_name,
-        last_name:  c.last_name,
-        company:    result.company || c.organization_name,
-        title:      result.title   || '',
-        email:      result.email   || '',
-        phone:      result.phone   || '',
-        linkedin:   result.linkedin || '',
-      });
+      const row = {
+        first_name:   c.first_name,
+        last_name:    c.last_name,
+        company:      result.company || c.organization_name,
+        title:        result.title        ?? '',
+        email:        result.email        ?? '',
+        email_status: result.email_status ?? '',
+        linkedin:     result.linkedin     ?? '',
+        location:     result.location     ?? '',
+        org_phone:    result.org_phone    ?? '',
+      };
+      bulkResults.push(row);
 
-      const row = document.createElement('div');
-      row.className = 'enrich-table-row' + (result.found ? '' : ' enrich-table-row--miss');
-      row.innerHTML = `
+      const el = document.createElement('div');
+      el.className = 'enrich-table-row' + (result.found ? '' : ' enrich-table-row--miss');
+      el.innerHTML = `
         <div>${c.first_name} ${c.last_name}</div>
-        <div>${c.organization_name}</div>
-        <div>${result.title || '—'}</div>
-        <div>${result.email    ? `<a href="mailto:${result.email}" class="enrich-link">${result.email}</a>`       : '—'}</div>
-        <div>${result.phone    ? `<a href="tel:${result.phone}" class="enrich-link">${result.phone}</a>`          : '—'}</div>
-        <div>${result.linkedin ? `<a href="${result.linkedin}" target="_blank" class="enrich-link">LinkedIn</a>`  : '—'}</div>`;
-      tableEl.appendChild(row);
+        <div>${row.company}</div>
+        <div>${row.title || '—'}</div>
+        <div>${row.email ? `<a href="mailto:${row.email}" class="enrich-link">${row.email}</a>` : '—'}</div>
+        <div>${row.email_status ? emailStatusBadge(row.email_status) : '—'}</div>
+        <div>${row.linkedin ? `<a href="${row.linkedin}" target="_blank" class="enrich-link">↗</a>` : '—'}</div>
+        <div>${row.org_phone || '—'}</div>`;
+      tableEl.appendChild(el);
 
-      // small delay to avoid rate-limiting
-      if (i < contacts.length - 1) await new Promise(r => setTimeout(r, 300));
+      if (i < contacts.length - 1) await new Promise(r => setTimeout(r, 350));
     }
 
-    progressEl.textContent = `Done — ${contacts.length} contact${contacts.length !== 1 ? 's' : ''} processed.`;
+    const found = bulkResults.filter(r => r.email).length;
+    progressEl.textContent = `Done — ${contacts.length} contacts processed, ${found} emails found.`;
     runBtn.disabled = false;
     if (bulkResults.length) exportBtn.style.display = 'inline-flex';
   });

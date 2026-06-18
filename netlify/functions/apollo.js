@@ -11,7 +11,6 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: cors, body: '' };
   }
-
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers: cors, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
@@ -29,14 +28,16 @@ exports.handler = async (event) => {
 
     const res = await fetch('https://api.apollo.io/v1/people/match', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Api-Key': apiKey,
+        'Cache-Control': 'no-cache',
+      },
       body: JSON.stringify({
-        api_key: apiKey,
         first_name,
         last_name,
         organization_name,
         reveal_personal_emails: true,
-        reveal_phone_number: true,
       }),
     });
 
@@ -47,21 +48,19 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers: cors, body: JSON.stringify({ found: false }) };
     }
 
-    const phone = p.phone_numbers?.find(n => n.sanitized_number)?.sanitized_number
-                ?? p.sanitized_phone
-                ?? null;
-
     return {
       statusCode: 200,
       headers: cors,
       body: JSON.stringify({
-        found: true,
-        name:     `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim(),
-        email:    p.email ?? null,
-        phone:    phone,
-        linkedin: p.linkedin_url ?? null,
-        title:    p.title ?? null,
-        company:  p.organization?.name ?? organization_name,
+        found:        true,
+        name:         `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim(),
+        email:        p.email ?? null,
+        email_status: p.email_status ?? null,          // verified / likely / guessed
+        title:        p.title ?? null,
+        linkedin:     p.linkedin_url ?? null,
+        location:     p.formatted_address ?? null,
+        org_phone:    p.organization?.primary_phone?.number ?? null,  // switchboard, not direct dial
+        company:      p.organization?.name ?? organization_name,
       }),
     };
   } catch (err) {
