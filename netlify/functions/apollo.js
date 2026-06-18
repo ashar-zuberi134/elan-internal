@@ -38,7 +38,6 @@ exports.handler = async (event) => {
         last_name,
         organization_name,
         reveal_personal_emails: true,
-        reveal_phone_number: true,
       }),
     });
 
