@@ -84,7 +84,7 @@ function renderPhoneRows(phones, switchboard) {
 
 function renderSingleResult(data, container) {
   if (!data.found) {
-    container.innerHTML = `<div class="enrich-empty">No match found in Apollo — person may not be in their database (common for small UK SME owners).</div>`;
+    container.innerHTML = `<div class="enrich-empty">No match found — this person may not be in our database (common for small UK SME owners).</div>`;
     return;
   }
 
