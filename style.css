@@ -425,6 +425,41 @@ body {
   gap: 4px;
 }
 
+.ga-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #e8f5f3;
+  color: #5a7a78;
+  font-size: 9px;
+  font-weight: 600;
+  cursor: default;
+  vertical-align: middle;
+  margin-left: 3px;
+  border: 0.5px solid #c8e8e3;
+}
+
+.ga-tooltip {
+  position: fixed;
+  background: #0D2B2A;
+  color: #E8F5F3;
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  max-width: 240px;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+}
+
+.ga-tooltip--visible {
+  display: block;
+}
+
 .metric-card--chart {
   width: 100%;
 }

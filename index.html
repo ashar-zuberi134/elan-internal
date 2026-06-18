@@ -135,32 +135,39 @@
 
       <!-- Summary row -->
       <div class="metrics-grid metrics-grid--5" style="margin-bottom:12px;">
-        <div class="metric-card">
-          <div class="metric-label">Sessions (30d)</div>
+        <div class="metric-card ga-tip" data-tip="Total visits to the site in the last 30 days. One person visiting 3 pages = 1 session.">
+          <div class="metric-label">Sessions (30d) <span class="ga-info">?</span></div>
           <div class="metric-value" id="ga-sessions">—</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Users (30d)</div>
+        <div class="metric-card ga-tip" data-tip="Unique visitors in the last 30 days — counted once even if they visit multiple times.">
+          <div class="metric-label">Users (30d) <span class="ga-info">?</span></div>
           <div class="metric-value" id="ga-users">—</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">New Users</div>
+        <div class="metric-card ga-tip" data-tip="Visitors who came to the site for the very first time in the last 30 days.">
+          <div class="metric-label">New Users <span class="ga-info">?</span></div>
           <div class="metric-value" id="ga-new-users">—</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Engagement Rate</div>
+        <div class="metric-card ga-tip" data-tip="% of sessions where the visitor spent 10+ seconds or viewed 2+ pages. Higher is better — means people are reading the site.">
+          <div class="metric-label">Engagement Rate <span class="ga-info">?</span></div>
           <div class="metric-value" id="ga-engagement">—</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Bounce Rate</div>
+        <div class="metric-card ga-tip" data-tip="% of sessions where the visitor left immediately without interacting. Lower is better. 78% is high — most visitors are just glancing.">
+          <div class="metric-label">Bounce Rate <span class="ga-info">?</span></div>
           <div class="metric-value" id="ga-bounce">—</div>
         </div>
       </div>
+      <div class="ga-tooltip" id="ga-tooltip"></div>
 
-      <!-- Users per day — full width chart -->
-      <div class="metric-card metric-card--chart" style="margin-bottom:12px;">
-        <div class="metric-label" style="margin-bottom:16px;">Users per day — last 30 days</div>
-        <canvas id="ga-spark"></canvas>
+      <!-- Two charts side by side -->
+      <div class="metrics-grid metrics-grid--2" style="margin-bottom:12px;">
+        <div class="metric-card metric-card--chart">
+          <div class="metric-label" style="margin-bottom:16px;">Visitors per day — last 30 days</div>
+          <canvas id="ga-spark"></canvas>
+        </div>
+        <div class="metric-card metric-card--chart">
+          <div class="metric-label" style="margin-bottom:16px;">Visitors per week — last 3 months</div>
+          <canvas id="ga-weekly"></canvas>
+        </div>
       </div>
 
       <!-- Sources row -->

@@ -58,7 +58,7 @@ exports.handler = async () => {
     const token = await getAccessToken(sa);
 
     // Run all four reports in parallel
-    const [summary, daily, sources, pages, countries] = await Promise.all([
+    const [summary, daily, sources, pages, countries, weekly] = await Promise.all([
 
       // 1. Summary — sessions, users, engagement rate (last 30 days)
       runReport(token, {
@@ -106,6 +106,14 @@ exports.handler = async () => {
         orderBys:   [{ metric: { metricName: 'activeUsers' }, desc: true }],
         limit: 8,
       }),
+
+      // 6. Weekly users for 3-month chart
+      runReport(token, {
+        dateRanges: [{ startDate: '90daysAgo', endDate: 'today' }],
+        dimensions: [{ name: 'isoWeek' }, { name: 'isoYear' }],
+        metrics:    [{ name: 'activeUsers' }],
+        orderBys:   [{ dimension: { dimensionName: 'isoYear' } }, { dimension: { dimensionName: 'isoWeek' } }],
+      }),
     ]);
 
     // Parse summary row
@@ -142,10 +150,17 @@ exports.handler = async () => {
       users:   parseInt(row.metricValues[0].value),
     }));
 
+    // Parse weekly (isoWeek + isoYear → label like "W23 '25")
+    const weeklyData = (weekly.rows ?? []).map(row => ({
+      week:  row.dimensionValues[0].value,
+      year:  row.dimensionValues[1].value,
+      users: parseInt(row.metricValues[0].value),
+    }));
+
     return {
       statusCode: 200,
       headers:    cors,
-      body: JSON.stringify({ summary: summaryData, daily: dailyData, sources: sourcesData, pages: pagesData, countries: countriesData }),
+      body: JSON.stringify({ summary: summaryData, daily: dailyData, sources: sourcesData, pages: pagesData, countries: countriesData, weekly: weeklyData }),
     };
   } catch (err) {
     return {
