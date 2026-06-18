@@ -20,6 +20,7 @@
       <button class="tab tab--active" data-tab="metrics">Metrics</button>
       <button class="tab" data-tab="crm">CRM</button>
       <button class="tab" data-tab="tasks">Live Tasks</button>
+      <button class="tab" data-tab="finder">Contact Finder</button>
     </nav>
   </header>
 
@@ -244,10 +245,56 @@
     </div>
   </main>
 
+  <!-- ── Tab: Contact Finder ── -->
+  <main class="page tab-panel" id="tab-finder">
+
+    <!-- Single lookup -->
+    <section class="enrich-section">
+      <div class="enrich-section-title">Single Lookup</div>
+      <p class="sub">Enter a name and company to find email, phone and LinkedIn via Apollo.</p>
+      <form class="enrich-form" id="enrich-form">
+        <input class="enrich-input" id="enrich-first"   type="text" placeholder="First name"   required />
+        <input class="enrich-input" id="enrich-last"    type="text" placeholder="Last name"    required />
+        <input class="enrich-input" id="enrich-company" type="text" placeholder="Company name" required />
+        <button class="btn btn--primary" type="submit">Find Contact</button>
+      </form>
+      <div class="enrich-spinner" id="enrich-spinner" style="display:none;">Looking up…</div>
+      <div id="enrich-single-result"></div>
+    </section>
+
+    <div class="enrich-divider"></div>
+
+    <!-- Bulk CSV -->
+    <section class="enrich-section">
+      <div class="enrich-section-title">Bulk CSV Lookup</div>
+      <p class="sub">Upload a CSV and we'll enrich every row. Download the results as Excel.</p>
+
+      <div class="enrich-csv-instructions">
+        <div class="enrich-csv-instructions-title">CSV format — 3 columns, with this exact header row:</div>
+        <code class="enrich-csv-code">first_name,last_name,company</code>
+        <div style="margin-top:6px;font-size:11px;color:#5a7a78;">Example rows: <code>Alex,Lundberg,TechCorp</code> &nbsp;·&nbsp; <code>Jane,Smith,Acme Ltd</code></div>
+      </div>
+
+      <div class="enrich-file-row">
+        <label class="enrich-file-btn" for="enrich-csv-file">
+          <span id="enrich-file-label">Choose CSV file</span>
+          <input type="file" id="enrich-csv-file" accept=".csv" style="display:none;" />
+        </label>
+        <button class="btn btn--primary" id="enrich-bulk-run" disabled>Run Lookup</button>
+        <button class="btn" id="enrich-bulk-export" style="display:none;">↓ Export to Excel</button>
+      </div>
+
+      <div class="enrich-bulk-progress" id="enrich-bulk-progress"></div>
+      <div id="enrich-bulk-table"></div>
+    </section>
+
+  </main>
+
   <!-- ── CRM Drawer overlay ── -->
   <div class="crm-overlay" id="crm-overlay"></div>
   <aside class="crm-drawer" id="crm-drawer"></aside>
 
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
