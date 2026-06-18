@@ -38,6 +38,7 @@ exports.handler = async (event) => {
         last_name,
         organization_name,
         reveal_personal_emails: true,
+        reveal_phone_number: true,
       }),
     });
 
@@ -48,6 +49,18 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers: cors, body: JSON.stringify({ found: false }) };
     }
 
+    // Parse phone numbers — Apollo returns typed array when reveal_phone_number: true
+    const phones = (p.phone_numbers ?? [])
+      .filter(n => n.sanitized_number)
+      .map(n => ({
+        number: n.sanitized_number,
+        type:   n.type ?? 'unknown',   // mobile | work_direct | work_hq | home | other
+        status: n.status ?? null,      // verified | no_status
+      }));
+
+    // Org switchboard as fallback if no direct numbers returned
+    const switchboard = p.organization?.primary_phone?.number ?? null;
+
     return {
       statusCode: 200,
       headers: cors,
@@ -55,11 +68,12 @@ exports.handler = async (event) => {
         found:        true,
         name:         `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim(),
         email:        p.email ?? null,
-        email_status: p.email_status ?? null,          // verified / likely / guessed
+        email_status: p.email_status ?? null,
         title:        p.title ?? null,
         linkedin:     p.linkedin_url ?? null,
         location:     p.formatted_address ?? null,
-        org_phone:    p.organization?.primary_phone?.number ?? null,  // switchboard, not direct dial
+        phones,
+        switchboard,
         company:      p.organization?.name ?? organization_name,
       }),
     };

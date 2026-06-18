@@ -44,6 +44,44 @@ function resultRow(label, display, href, copyValue, extra) {
     </div>`;
 }
 
+const PHONE_TYPE_LABEL = {
+  mobile:      { label: 'Mobile',   color: '#1a7a4a', bg: '#eaf7f0' },
+  work_direct: { label: 'Direct',   color: '#1a7a4a', bg: '#eaf7f0' },
+  work_hq:     { label: 'HQ',       color: '#5a7a78', bg: '#e8f5f3' },
+  home:        { label: 'Home',     color: '#5a7a78', bg: '#e8f5f3' },
+  other:       { label: 'Other',    color: '#9bbfba', bg: '#f4faf9' },
+  unknown:     { label: 'Phone',    color: '#9bbfba', bg: '#f4faf9' },
+};
+
+function phoneTypeBadge(type) {
+  const s = PHONE_TYPE_LABEL[type] ?? PHONE_TYPE_LABEL.unknown;
+  return `<span class="enrich-status-badge" style="background:${s.bg};color:${s.color};">${s.label}</span>`;
+}
+
+function renderPhoneRows(phones, switchboard) {
+  const rows = [];
+
+  if (phones?.length) {
+    phones.forEach(p => {
+      rows.push(resultRow(
+        'Phone', p.number, `tel:${p.number}`, p.number,
+        phoneTypeBadge(p.type)
+      ));
+    });
+  }
+
+  // Show switchboard only if no direct numbers or as additional info
+  if (switchboard && (!phones?.length || !phones.some(p => p.type === 'work_hq'))) {
+    rows.push(resultRow('Switchboard', switchboard, `tel:${switchboard}`, switchboard));
+  }
+
+  if (!rows.length) {
+    rows.push(resultRow('Phone', null, null, null));
+  }
+
+  return rows.join('');
+}
+
 function renderSingleResult(data, container) {
   if (!data.found) {
     container.innerHTML = `<div class="enrich-empty">No match found in Apollo — person may not be in their database (common for small UK SME owners).</div>`;
@@ -58,15 +96,11 @@ function renderSingleResult(data, container) {
         ${resultRow('Email',
             data.email, `mailto:${data.email}`, data.email,
             emailStatusBadge(data.email_status))}
+        ${renderPhoneRows(data.phones, data.switchboard)}
         ${resultRow('LinkedIn',
             data.linkedin ? 'View profile' : null, data.linkedin, data.linkedin)}
         ${resultRow('Location',
             data.location, null, data.location)}
-        ${resultRow('Switchboard',
-            data.org_phone, `tel:${data.org_phone}`, data.org_phone)}
-      </div>
-      <div class="enrich-phone-note">
-        ℹ Phone shown is the company switchboard. Direct dials require Apollo phone credits + webhook setup.
       </div>
     </div>`;
 }
@@ -116,11 +150,12 @@ function parseCSV(text) {
 }
 
 function buildXLSX(rows) {
-  const headers = ['First Name', 'Last Name', 'Company', 'Title', 'Email', 'Email Status', 'LinkedIn', 'Location', 'Switchboard Phone'];
+  const headers = ['First Name', 'Last Name', 'Company', 'Title', 'Email', 'Email Status', 'Mobile / Direct', 'HQ Phone', 'LinkedIn', 'Location'];
   const data = [headers, ...rows.map(r => [
     r.first_name, r.last_name, r.company,
     r.title ?? '', r.email ?? '', r.email_status ?? '',
-    r.linkedin ?? '', r.location ?? '', r.org_phone ?? '',
+    r.direct_phone ?? '', r.hq_phone ?? '',
+    r.linkedin ?? '', r.location ?? '',
   ])];
 
   if (window.XLSX) {
@@ -171,7 +206,7 @@ function initBulkLookup() {
     tableEl.innerHTML = `
       <div class="enrich-table-head">
         <div>Name</div><div>Company</div><div>Title</div>
-        <div>Email</div><div>Status</div><div>LinkedIn</div><div>Switchboard</div>
+        <div>Email</div><div>Status</div><div>Phone(s)</div><div>LinkedIn</div>
       </div>`;
 
     for (let i = 0; i < contacts.length; i++) {
@@ -183,6 +218,13 @@ function initBulkLookup() {
         result = await lookupContact(c.first_name, c.last_name, c.organization_name);
       } catch {}
 
+      // Best direct number: prefer mobile/direct over hq
+      const phones = result.phones ?? [];
+      const directPhone = phones.find(p => p.type === 'mobile' || p.type === 'work_direct')?.number
+                       ?? phones.find(p => p.type !== 'work_hq')?.number
+                       ?? null;
+      const hqPhone = phones.find(p => p.type === 'work_hq')?.number ?? result.switchboard ?? null;
+
       const row = {
         first_name:   c.first_name,
         last_name:    c.last_name,
@@ -190,11 +232,14 @@ function initBulkLookup() {
         title:        result.title        ?? '',
         email:        result.email        ?? '',
         email_status: result.email_status ?? '',
+        direct_phone: directPhone         ?? '',
+        hq_phone:     hqPhone             ?? '',
         linkedin:     result.linkedin     ?? '',
         location:     result.location     ?? '',
-        org_phone:    result.org_phone    ?? '',
       };
       bulkResults.push(row);
+
+      const allPhones = phones.map(p => `${p.number} (${PHONE_TYPE_LABEL[p.type]?.label ?? p.type})`).join('<br>') || (hqPhone ? `${hqPhone} (HQ)` : '—');
 
       const el = document.createElement('div');
       el.className = 'enrich-table-row' + (result.found ? '' : ' enrich-table-row--miss');
@@ -204,8 +249,8 @@ function initBulkLookup() {
         <div>${row.title || '—'}</div>
         <div>${row.email ? `<a href="mailto:${row.email}" class="enrich-link">${row.email}</a>` : '—'}</div>
         <div>${row.email_status ? emailStatusBadge(row.email_status) : '—'}</div>
-        <div>${row.linkedin ? `<a href="${row.linkedin}" target="_blank" class="enrich-link">↗</a>` : '—'}</div>
-        <div>${row.org_phone || '—'}</div>`;
+        <div>${allPhones}</div>
+        <div>${row.linkedin ? `<a href="${row.linkedin}" target="_blank" class="enrich-link">↗</a>` : '—'}</div>`;
       tableEl.appendChild(el);
 
       if (i < contacts.length - 1) await new Promise(r => setTimeout(r, 350));
