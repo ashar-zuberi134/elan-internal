@@ -157,21 +157,16 @@
         </div>
       </div>
 
-      <!-- Chart + Sources row -->
-      <div class="metrics-grid metrics-grid--2" style="margin-bottom:12px;">
+      <!-- Users per day — full width chart -->
+      <div class="metric-card metric-card--chart" style="margin-bottom:12px;">
+        <div class="metric-label" style="margin-bottom:16px;">Users per day — last 30 days</div>
+        <canvas id="ga-spark"></canvas>
+      </div>
 
-        <div class="metric-card metric-card--tall">
-          <div class="metric-label" style="margin-bottom:12px;">Sessions — last 30 days</div>
-          <div class="spark-wrap">
-            <canvas id="ga-spark" height="80"></canvas>
-          </div>
-        </div>
-
-        <div class="metric-card metric-card--tall">
-          <div class="metric-label" style="margin-bottom:12px;">Traffic Sources</div>
-          <div id="ga-sources"></div>
-        </div>
-
+      <!-- Sources row -->
+      <div class="metric-card" style="margin-bottom:12px;">
+        <div class="metric-label" style="margin-bottom:12px;">Traffic Sources</div>
+        <div id="ga-sources"></div>
       </div>
 
       <!-- Top pages -->

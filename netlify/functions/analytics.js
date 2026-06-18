@@ -72,11 +72,11 @@ exports.handler = async () => {
         ],
       }),
 
-      // 2. Daily sessions for sparkline (last 30 days)
+      // 2. Daily users for chart (last 30 days)
       runReport(token, {
         dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
         dimensions: [{ name: 'date' }],
-        metrics:    [{ name: 'sessions' }],
+        metrics:    [{ name: 'activeUsers' }],
         orderBys:   [{ dimension: { dimensionName: 'date' } }],
       }),
 
@@ -109,10 +109,10 @@ exports.handler = async () => {
       newUsers:       parseInt(s[4]?.value ?? 0),
     };
 
-    // Parse daily sparkline
+    // Parse daily users
     const dailyData = (daily.rows ?? []).map(row => ({
-      date:     row.dimensionValues[0].value, // YYYYMMDD
-      sessions: parseInt(row.metricValues[0].value),
+      date:  row.dimensionValues[0].value, // YYYYMMDD
+      users: parseInt(row.metricValues[0].value),
     }));
 
     // Parse sources

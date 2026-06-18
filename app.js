@@ -411,28 +411,73 @@ function renderAnalytics({ summary, daily, sources, pages }) {
 function renderSparkline(daily) {
   const canvas = document.getElementById('ga-spark');
   if (!canvas || !daily.length) return;
-  const ctx    = canvas.getContext('2d');
-  const dpr    = window.devicePixelRatio || 1;
-  const W      = canvas.parentElement.clientWidth;
-  const H      = 80;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W   = canvas.parentElement.clientWidth;
+  const H   = 200;
+  const PAD = { top: 24, right: 8, bottom: 36, left: 32 };
+
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width  = W + 'px';
   canvas.style.height = H + 'px';
   ctx.scale(dpr, dpr);
 
-  const vals   = daily.map(d => d.sessions);
+  const vals   = daily.map(d => d.users);
   const maxVal = Math.max(...vals, 1);
-  const barW   = (W - (vals.length - 1) * 2) / vals.length;
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+  const n      = vals.length;
+  const gap    = 3;
+  const barW   = Math.max(4, (chartW - gap * (n - 1)) / n);
 
+  // Gridlines + y-axis labels
+  ctx.font = `${10 * dpr / dpr}px IBM Plex Sans, sans-serif`;
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#9bbfba';
+  [0, 0.25, 0.5, 0.75, 1].forEach(frac => {
+    const y = PAD.top + chartH * (1 - frac);
+    ctx.fillStyle = '#9bbfba';
+    ctx.fillText(Math.round(maxVal * frac), PAD.left - 6, y + 3.5);
+    ctx.strokeStyle = '#e8f5f3';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD.left, y);
+    ctx.lineTo(PAD.left + chartW, y);
+    ctx.stroke();
+  });
+
+  // Bars + value labels on top
   vals.forEach((v, i) => {
-    const barH = Math.max(2, (v / maxVal) * (H - 16));
-    const x    = i * (barW + 2);
-    const y    = H - barH;
+    const barH = Math.max(2, (v / maxVal) * chartH);
+    const x    = PAD.left + i * (barW + gap);
+    const y    = PAD.top + chartH - barH;
+
     ctx.fillStyle = '#2A9D8F';
     ctx.beginPath();
     ctx.roundRect(x, y, barW, barH, 2);
     ctx.fill();
+
+    // Value on top of bar (only if bar is wide enough)
+    if (v > 0 && barW >= 14) {
+      ctx.fillStyle = '#0D2B2A';
+      ctx.font = '9px IBM Plex Sans, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(v, x + barW / 2, y - 4);
+    }
+  });
+
+  // X-axis date labels — show every ~5th
+  ctx.fillStyle = '#9bbfba';
+  ctx.font = '9px IBM Plex Sans, sans-serif';
+  ctx.textAlign = 'center';
+  const step = Math.ceil(n / 8);
+  vals.forEach((_, i) => {
+    if (i % step !== 0 && i !== n - 1) return;
+    const raw  = daily[i].date; // YYYYMMDD
+    const label = `${raw.slice(4,6)}/${raw.slice(6,8)}`;
+    const x    = PAD.left + i * (barW + gap) + barW / 2;
+    ctx.fillText(label, x, H - 8);
   });
 }
 

@@ -425,6 +425,15 @@ body {
   gap: 4px;
 }
 
+.metric-card--chart {
+  width: 100%;
+}
+
+.metric-card--chart canvas {
+  display: block;
+  width: 100%;
+}
+
 .metric-card--placeholder {
   opacity: 0.5;
 }
