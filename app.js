@@ -3,6 +3,7 @@ import { initCrm, renderList as crmRenderList } from './crm.js';
 import { initTasks } from './tasks.js';
 import { initEnrichment } from './enrichment.js';
 import { initGtm } from './gtm.js';
+import { initMultiples } from './multiples.js';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -638,6 +639,7 @@ initCrm();
 initTasks();
 initEnrichment();
 initGtm();
+initMultiples();
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 

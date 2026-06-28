@@ -22,6 +22,7 @@
       <button class="tab" data-tab="tasks">Live Tasks</button>
       <button class="tab" data-tab="finder">Contact Finder</button>
       <button class="tab" data-tab="gtm">GTM</button>
+      <button class="tab" data-tab="multiples">Multiples</button>
     </nav>
   </header>
 
@@ -300,6 +301,26 @@
       <div id="enrich-bulk-table"></div>
     </section>
 
+  </main>
+
+  <!-- ── Tab: Multiples ── -->
+  <main class="page tab-panel" id="tab-multiples">
+    <div class="mul-header">
+      <div>
+        <div class="mul-title">Food &amp; Beverage M&amp;A — Precedent Transactions</div>
+        <div class="mul-sub">UK food &amp; drink deals sourced from Companies House filings and press reports</div>
+      </div>
+      <div class="mul-summary" id="mul-summary"></div>
+    </div>
+
+    <div class="mul-tabs">
+      <button class="mul-tab mul-tab--active" data-mul-tab="with-multiples">With Multiples <span class="mul-tab-count" id="mc-with"></span></button>
+      <button class="mul-tab" data-mul-tab="ev-no-multiples">EV, No Multiples <span class="mul-tab-count" id="mc-evno"></span></button>
+      <button class="mul-tab" data-mul-tab="no-ev">No EV <span class="mul-tab-count" id="mc-noev"></span></button>
+      <button class="mul-tab" data-mul-tab="press">Press Reported <span class="mul-tab-count" id="mc-press"></span></button>
+    </div>
+
+    <div class="mul-panel" id="mul-panel"></div>
   </main>
 
   <!-- ── Tab: GTM ── -->
