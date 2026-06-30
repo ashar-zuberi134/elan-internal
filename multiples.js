@@ -18,7 +18,9 @@ async function loadData() {
 
 function fmtDate(d) {
   if (!d) return '—';
+  if (/^\d{4}$/.test(d)) return d; // year only (press)
   const dt = new Date(d);
+  if (isNaN(dt)) return d;
   return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
@@ -37,7 +39,14 @@ function filingLink(url, label) {
   return `<a class="mul-filing-link" href="${url}" target="_blank" rel="noopener">${label} ↗</a>`;
 }
 
+function sourceBadge(source) {
+  if (!source) return '';
+  const isPress = source === 'Press';
+  return `<span class="mul-source-badge ${isPress ? 'mul-source-badge--press' : 'mul-source-badge--ch'}">${source}</span>`;
+}
+
 function median(arr) {
+  if (!arr.length) return 0;
   const s = [...arr].sort((a, b) => a - b);
   const m = Math.floor(s.length / 2);
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
@@ -46,13 +55,14 @@ function median(arr) {
 // ── Summary stats ─────────────────────────────────────────────────────────────
 
 function renderSummary() {
-  const ev = data.dealsWithEV ?? [];
-  const ebitdaVals = ev.map(r => r.evEbitda).filter(v => v != null);
-  const revVals    = ev.map(r => r.evRevenue).filter(v => v != null);
+  const withMult = data.withMultiples ?? [];
+  const ebitdaVals = withMult.map(r => r.evEbitda).filter(v => v != null);
+  const revVals    = withMult.map(r => r.evRevenue).filter(v => v != null);
+  const total = withMult.length + (data.evNoMultiples?.length ?? 0) + (data.noEv?.length ?? 0);
 
   document.getElementById('mul-summary').innerHTML = `
     <div class="mul-stat">
-      <span class="mul-stat-n">${(data.dealsWithEV?.length ?? 0) + (data.dealsWithoutEV?.length ?? 0) + (data.pressReported?.length ?? 0)}</span>
+      <span class="mul-stat-n">${total}</span>
       <span class="mul-stat-l">Total Deals</span>
     </div>
     <div class="mul-stat">
@@ -73,7 +83,7 @@ function renderSummary() {
 // ── Tab: With Multiples ───────────────────────────────────────────────────────
 
 function renderWithMultiples() {
-  const rows = (data.dealsWithEV ?? []).filter(r => r.evEbitda != null || r.evRevenue != null);
+  const rows = data.withMultiples ?? [];
   return `
     <div class="mul-table-wrap">
       <table class="mul-table">
@@ -88,7 +98,7 @@ function renderWithMultiples() {
             <th class="mul-th mul-th--right">EBITDA</th>
             <th class="mul-th mul-th--right">EV/EBITDA</th>
             <th class="mul-th mul-th--right">EV/Revenue</th>
-            <th class="mul-th">EBITDA Basis</th>
+            <th class="mul-th">Source</th>
             <th class="mul-th">Filings</th>
           </tr>
         </thead>
@@ -104,7 +114,7 @@ function renderWithMultiples() {
               <td class="mul-td mul-td--right">${r.ebitda ?? '—'}</td>
               ${multipleCell(r.evEbitda)}
               ${multipleCell(r.evRevenue)}
-              <td class="mul-td mul-td--basis">${r.ebitdaCalc ?? '—'}</td>
+              <td class="mul-td">${sourceBadge(r.source)}</td>
               <td class="mul-td mul-td--filings">
                 ${filingLink(r.targetFilingUrl, 'Target')}
                 ${r.targetFilingUrl && r.buyerFilingUrl ? '<span class="mul-filing-sep">·</span>' : ''}
@@ -124,7 +134,7 @@ function renderWithMultiples() {
 // ── Tab: EV but no multiples ──────────────────────────────────────────────────
 
 function renderEvNoMultiples() {
-  const rows = (data.dealsWithEV ?? []).filter(r => r.evEbitda == null && r.evRevenue == null);
+  const rows = data.evNoMultiples ?? [];
   return `
     <div class="mul-table-wrap">
       <table class="mul-table">
@@ -135,6 +145,7 @@ function renderEvNoMultiples() {
             <th class="mul-th">Buyer</th>
             <th class="mul-th">Date</th>
             <th class="mul-th mul-th--right">Consideration</th>
+            <th class="mul-th">Source</th>
             <th class="mul-th">Filings</th>
             <th class="mul-th">Note</th>
           </tr>
@@ -147,12 +158,13 @@ function renderEvNoMultiples() {
               <td class="mul-td mul-td--buyer">${r.buyer ?? '—'}</td>
               <td class="mul-td mul-td--date">${fmtDate(r.dealDate)}</td>
               <td class="mul-td mul-td--right">${r.consideration ?? '—'}</td>
+              <td class="mul-td">${sourceBadge(r.source)}</td>
               <td class="mul-td mul-td--filings">
                 ${filingLink(r.targetFilingUrl, 'Target')}
                 ${r.targetFilingUrl && r.buyerFilingUrl ? '<span class="mul-filing-sep">·</span>' : ''}
                 ${filingLink(r.buyerFilingUrl, 'Buyer')}
               </td>
-              <td class="mul-td mul-td--basis mul-td--muted">${r.keySentence ? r.keySentence.slice(0, 120) + (r.keySentence.length > 120 ? '…' : '') : '—'}</td>
+              <td class="mul-td mul-td--basis mul-td--muted">${r.keySentence ? r.keySentence.slice(0, 110) + (r.keySentence.length > 110 ? '…' : '') : '—'}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -163,7 +175,7 @@ function renderEvNoMultiples() {
 // ── Tab: No EV ────────────────────────────────────────────────────────────────
 
 function renderNoEv() {
-  const rows = data.dealsWithoutEV ?? [];
+  const rows = data.noEv ?? [];
   return `
     <div class="mul-table-wrap">
       <table class="mul-table">
@@ -173,7 +185,8 @@ function renderNoEv() {
             <th class="mul-th">Target</th>
             <th class="mul-th">Buyer</th>
             <th class="mul-th">Date</th>
-            <th class="mul-th">Source Note</th>
+            <th class="mul-th">Source</th>
+            <th class="mul-th">Note</th>
           </tr>
         </thead>
         <tbody>
@@ -183,39 +196,8 @@ function renderNoEv() {
               <td class="mul-td mul-td--company">${r.target ?? '—'}</td>
               <td class="mul-td mul-td--buyer">${r.buyer ?? '—'}</td>
               <td class="mul-td mul-td--date">${fmtDate(r.dealDate)}</td>
+              <td class="mul-td">${sourceBadge(r.source)}</td>
               <td class="mul-td mul-td--note">${r.keySentence ?? '—'}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>`;
-}
-
-// ── Tab: Press Reported ───────────────────────────────────────────────────────
-
-function renderPress() {
-  const rows = data.pressReported ?? [];
-  return `
-    <p class="mul-disclaimer">Deal values sourced from press coverage. Not verified against Companies House filings.</p>
-    <div class="mul-table-wrap">
-      <table class="mul-table">
-        <thead>
-          <tr>
-            <th class="mul-th">#</th>
-            <th class="mul-th">Target</th>
-            <th class="mul-th">Buyer</th>
-            <th class="mul-th mul-th--right">Year</th>
-            <th class="mul-th mul-th--right">Deal Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(r => `
-            <tr class="mul-row">
-              <td class="mul-td mul-td--num">${r.num}</td>
-              <td class="mul-td mul-td--company">${r.target ?? '—'}</td>
-              <td class="mul-td mul-td--buyer">${r.buyer ?? '—'}</td>
-              <td class="mul-td mul-td--right">${r.year ?? '—'}</td>
-              <td class="mul-td mul-td--right mul-td--strong">${r.dealValue ?? '—'}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -228,12 +210,10 @@ function renderPress() {
 function renderPanel() {
   const panel = document.getElementById('mul-panel');
   if (!panel) return;
-  if      (activeTab === 'with-multiples') panel.innerHTML = renderWithMultiples();
+  if      (activeTab === 'with-multiples')  panel.innerHTML = renderWithMultiples();
   else if (activeTab === 'ev-no-multiples') panel.innerHTML = renderEvNoMultiples();
-  else if (activeTab === 'no-ev')          panel.innerHTML = renderNoEv();
-  else if (activeTab === 'press')          panel.innerHTML = renderPress();
+  else if (activeTab === 'no-ev')           panel.innerHTML = renderNoEv();
 
-  // Toggle key sentence rows on click
   panel.querySelectorAll('.mul-row[data-key]').forEach(row => {
     row.addEventListener('click', () => {
       const detail = panel.querySelector(`.mul-row-detail[data-detail="${row.dataset.key}"]`);
@@ -243,11 +223,9 @@ function renderPanel() {
 }
 
 function renderCounts() {
-  const ev = data.dealsWithEV ?? [];
-  document.getElementById('mc-with').textContent  = ev.filter(r => r.evEbitda != null || r.evRevenue != null).length;
-  document.getElementById('mc-evno').textContent  = ev.filter(r => r.evEbitda == null && r.evRevenue == null).length;
-  document.getElementById('mc-noev').textContent  = (data.dealsWithoutEV ?? []).length;
-  document.getElementById('mc-press').textContent = (data.pressReported ?? []).length;
+  document.getElementById('mc-with').textContent = (data.withMultiples ?? []).length;
+  document.getElementById('mc-evno').textContent = (data.evNoMultiples ?? []).length;
+  document.getElementById('mc-noev').textContent = (data.noEv ?? []).length;
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

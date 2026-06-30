@@ -1932,6 +1932,18 @@ body {
 .mul-filing-link:hover { text-decoration: underline; }
 .mul-filing-sep { color: #c8deda; margin: 0 4px; }
 
+.mul-source-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+.mul-source-badge--ch    { background: #e8f0fe; color: #1a56db; }
+.mul-source-badge--press { background: #f4e8fe; color: #7a3fd4; }
+
 .mul-row-detail { display: none; }
 .mul-row-detail--open { display: table-row; }
 .mul-td-detail {
