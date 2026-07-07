@@ -2217,6 +2217,103 @@ body {
 .gtm-step-cell { text-align: center; vertical-align: middle; }
 .gtm-step-cell .gtm-channel-badge { display: block; margin-bottom: 4px; }
 
+/* Week header rows */
+.gtm-week-header td { padding: 0; }
+.gtm-week-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 6px;
+  background: #f4faf9;
+  border-top: 2px solid #c8deda;
+  margin-top: 4px;
+}
+.gtm-week-range { font-size: 12px; font-weight: 700; color: #1a3a36; }
+.gtm-week-progress { font-size: 11px; color: #5a7a78; display: flex; align-items: center; gap: 6px; }
+.gtm-week-total { color: #9bbfba; }
+.gtm-week-chip {
+  font-size: 10px;
+  background: #e6f0ee;
+  color: #5a7a78;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Assignee badges */
+.gtm-assignee-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.gtm-assignee--ashar { background: #ede9fe; color: #6d28d9; }
+.gtm-assignee--rohit { background: #fee2e2; color: #b91c1c; }
+
+/* Row with notes indicator */
+.gtm-row--has-notes { border-left: 3px solid #f4a261; }
+
+/* Notes */
+.gtm-note-empty { font-size: 12px; color: #9bbfba; font-style: italic; padding: 4px 0 8px; }
+
+.gtm-note {
+  background: #fff;
+  border: 1px solid #e6f0ee;
+  border-radius: 7px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.gtm-note-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.gtm-note-author { font-size: 11px; font-weight: 700; color: #1a3a36; }
+.gtm-note-date   { font-size: 11px; color: #9bbfba; flex: 1; }
+.gtm-note-delete {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: #c8deda;
+  cursor: pointer;
+  padding: 0;
+}
+.gtm-note-delete:hover { color: #c0392b; }
+.gtm-note-text { font-size: 13px; color: #2a5a56; line-height: 1.5; white-space: pre-wrap; }
+
+.gtm-note-add {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+.gtm-note-author-select {
+  width: fit-content;
+  padding: 5px 10px;
+  border: 1.5px solid #c8deda;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #1a3a36;
+  background: #fff;
+  outline: none;
+}
+.gtm-note-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #c8deda;
+  border-radius: 7px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1a3a36;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+.gtm-note-input:focus { border-color: #2A9D8F; }
+
 .gtm-action-btn {
   padding: 5px 14px;
   border-radius: 6px;
