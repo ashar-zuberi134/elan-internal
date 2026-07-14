@@ -113,26 +113,30 @@ function renderTable() {
       </tr>
       ${wkLeads.map(l => `
         <tr class="gtm-row ${l.notes?.length ? 'gtm-row--has-notes' : ''}" data-id="${l.id}">
-          <td class="gtm-num">${l.num}</td>
-          <td class="gtm-company">
+          <td class="gtm-td gtm-td--num">${l.num}</td>
+          <td class="gtm-td gtm-td--company">
             <div class="gtm-company-name">${l.company}</div>
-            ${l.website ? `<a class="gtm-link" href="${l.website}" target="_blank">${l.website.replace(/^https?:\/\//, '')}</a>` : ''}
+            ${l.website ? `<a class="gtm-link" href="${l.website}" target="_blank" onclick="event.stopPropagation()">${l.website.replace(/^https?:\/\//, '')}</a>` : ''}
           </td>
-          <td class="gtm-sector">${l.sector}</td>
-          <td class="gtm-contact">
-            <div>${l.contactName}</div>
+          <td class="gtm-td gtm-td--sector">${l.sector}</td>
+          <td class="gtm-td gtm-td--contact">
+            <div class="gtm-contact-name">${l.contactName}</div>
             <div class="gtm-contact-title">${l.title}</div>
+            ${l.email ? `<a class="gtm-link" href="mailto:${l.email}" onclick="event.stopPropagation()">${l.email}</a>` : ''}
           </td>
-          <td class="gtm-revenue">${l.revenue}</td>
-          <td class="gtm-growth">${l.growth}</td>
-          <td class="gtm-step-cell">
+          <td class="gtm-td gtm-td--right gtm-td--revenue">${l.revenue || '—'}</td>
+          <td class="gtm-td gtm-td--right gtm-td--growth">${l.growth || '—'}</td>
+          <td class="gtm-td gtm-td--center">
             ${channelBadge(l.steps.email.channelAngle)}
             ${stepBadge(l.steps.email.status)}
           </td>
-          <td class="gtm-step-cell">${stepBadge(l.steps.linkedin.status)}</td>
-          <td class="gtm-step-cell">
-            ${assigneeBadge(l.callAssignee)}
+          <td class="gtm-td gtm-td--center">${stepBadge(l.steps.linkedin.status)}</td>
+          <td class="gtm-td gtm-td--center">
+            <div>${assigneeBadge(l.callAssignee)}</div>
             ${stepBadge(l.steps.phone.status)}
+          </td>
+          <td class="gtm-td gtm-td--center">
+            ${l.notes?.length ? `<span class="gtm-notes-chip">${l.notes.length}</span>` : '<span class="gtm-notes-chip gtm-notes-chip--empty">+</span>'}
           </td>
         </tr>`).join('')}`;
   }).join('');

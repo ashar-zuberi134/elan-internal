@@ -37,11 +37,29 @@ async function loadFromSupabase() {
 
 async function saveToSupabase() {
   try {
+    // Re-fetch latest before writing to avoid overwriting concurrent changes
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/${TASKS_TABLE}?id=eq.${TASKS_ROW_ID}&select=data`,
+      { headers: SB_HEADERS }
+    );
+    const rows = await res.json();
+    const remote = rows[0]?.data?.tasks ?? [];
+
+    // Merge: apply local tasks on top of any remote tasks we don't know about
+    const remoteIds = new Set(remote.map(t => t.id));
+    const localIds  = new Set(tasks.map(t => t.id));
+    // Start from remote, then overwrite/add with local versions
+    const merged = [
+      ...remote.filter(t => !localIds.has(t.id)), // remote-only (added by someone else)
+      ...tasks,                                     // our local version wins for shared ids
+    ];
+
     await fetch(`${SUPABASE_URL}/rest/v1/${TASKS_TABLE}`, {
       method: 'POST',
       headers: SB_HEADERS,
-      body: JSON.stringify({ id: TASKS_ROW_ID, data: { tasks } }),
+      body: JSON.stringify({ id: TASKS_ROW_ID, data: { tasks: merged } }),
     });
+    tasks = merged;
   } catch (err) {
     console.error('Tasks save failed:', err);
   }

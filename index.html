@@ -22,7 +22,6 @@
       <button class="tab" data-tab="tasks">Live Tasks</button>
       <button class="tab" data-tab="finder">Contact Finder</button>
       <button class="tab" data-tab="gtm">GTM</button>
-      <button class="tab" data-tab="multiples">Multiples</button>
     </nav>
   </header>
 
@@ -303,25 +302,6 @@
 
   </main>
 
-  <!-- ── Tab: Multiples ── -->
-  <main class="page tab-panel" id="tab-multiples">
-    <div class="mul-header">
-      <div>
-        <div class="mul-title">Food &amp; Beverage M&amp;A — Precedent Transactions</div>
-        <div class="mul-sub">UK food &amp; drink deals sourced from Companies House filings and press reports</div>
-      </div>
-      <div class="mul-summary" id="mul-summary"></div>
-    </div>
-
-    <div class="mul-tabs">
-      <button class="mul-tab mul-tab--active" data-mul-tab="with-multiples">With Multiples <span class="mul-tab-count" id="mc-with"></span></button>
-      <button class="mul-tab" data-mul-tab="ev-no-multiples">EV, No Multiples <span class="mul-tab-count" id="mc-evno"></span></button>
-      <button class="mul-tab" data-mul-tab="no-ev">No EV <span class="mul-tab-count" id="mc-noev"></span></button>
-    </div>
-
-    <div class="mul-panel" id="mul-panel"></div>
-  </main>
-
   <!-- ── Tab: GTM ── -->
   <main class="page tab-panel" id="tab-gtm">
     <div class="gtm-header">
@@ -332,17 +312,30 @@
     </div>
     <div class="gtm-table-wrap">
       <table class="gtm-table" id="gtm-table">
+        <colgroup>
+          <col style="width:40px">      <!-- # -->
+          <col style="width:220px">     <!-- Company -->
+          <col style="width:140px">     <!-- Sector -->
+          <col style="width:170px">     <!-- Contact -->
+          <col style="width:90px">      <!-- Revenue -->
+          <col style="width:80px">      <!-- Growth -->
+          <col style="width:130px">     <!-- Email -->
+          <col style="width:110px">     <!-- LinkedIn -->
+          <col style="width:150px">     <!-- Phone / Assignee -->
+          <col style="width:60px">      <!-- Notes -->
+        </colgroup>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Company</th>
-            <th>Sector</th>
-            <th>Contact</th>
-            <th>Revenue</th>
-            <th>Growth</th>
-            <th class="gtm-step-col">Step 1 · Email</th>
-            <th class="gtm-step-col">Step 2 · LinkedIn</th>
-            <th class="gtm-step-col">Step 3 · Phone</th>
+            <th class="gtm-th">#</th>
+            <th class="gtm-th">Company</th>
+            <th class="gtm-th">Sector</th>
+            <th class="gtm-th">Contact</th>
+            <th class="gtm-th gtm-th--right">Revenue</th>
+            <th class="gtm-th gtm-th--right">Growth</th>
+            <th class="gtm-th gtm-th--center">Step 1 · Email</th>
+            <th class="gtm-th gtm-th--center">Step 2 · LinkedIn</th>
+            <th class="gtm-th gtm-th--center">Step 3 · Phone</th>
+            <th class="gtm-th gtm-th--center">Notes</th>
           </tr>
         </thead>
         <tbody id="gtm-tbody"></tbody>
