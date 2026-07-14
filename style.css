@@ -1957,6 +1957,11 @@ body {
 
 /* ── GTM ── */
 
+#tab-gtm.page {
+  max-width: 100%;
+  padding: 0;
+}
+
 .gtm-header {
   display: flex;
   align-items: center;
@@ -2013,7 +2018,7 @@ body {
 
 .gtm-table {
   width: 100%;
-  min-width: 1200px;
+  min-width: 900px;
   border-collapse: collapse;
   font-size: 13px;
 }
