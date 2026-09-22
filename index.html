@@ -3,63 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>Elan — Internal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="is-signed-out">
 
-  <!-- ── Top bar (always visible) ── -->
+  <!-- ══ Sign-in gate ══ -->
+  <div class="auth-gate" id="auth-gate"></div>
+
+  <!-- ══ Top bar ══ -->
   <header class="topbar">
     <div class="elan-logo">
       <div class="elan-e"><span></span><span></span><span></span></div>
       <div class="elan-wordmark">ELAN</div>
     </div>
-    <nav class="tabs">
+    <nav class="tabs" aria-label="Sections">
       <button class="tab" data-tab="mandala">Mandala</button>
       <button class="tab tab--active" data-tab="metrics">Metrics</button>
-      <button class="tab" data-tab="crm">CRM</button>
       <button class="tab" data-tab="tasks">Live Tasks</button>
-      <button class="tab" data-tab="finder">Contact Finder</button>
-      <button class="tab" data-tab="gtm">GTM</button>
     </nav>
+    <div class="user-chip" id="user-chip"></div>
   </header>
 
-  <!-- ── Tab: Mandala ── -->
+  <!-- ══ Mandala ══ -->
   <main class="page tab-panel" id="tab-mandala">
+    <p class="sub">Click any cell to edit. Hover a cell to read its reasoning.</p>
 
-    <p class="sub">Click any cell to edit. Hover a cell to read reasoning.</p>
-
-    <div class="legend">
-      <div style="display:flex;align-items:center;gap:5px;">
-        <div class="legend-dot" style="background:#1a3a6e;"></div>
-        Near-term (&lt;12 months)
-      </div>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <div class="legend-dot" style="background:#2A9D8F;"></div>
-        Long-term (12+ months)
-      </div>
-      <span class="legend-sep">|</span>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <div class="legend-stripe" style="background:#F4A261;"></div>
-        Yash (CEO)
-      </div>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <div class="legend-stripe" style="background:#E76F51;"></div>
-        Rohit (Pres)
-      </div>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <div class="legend-stripe" style="background:#a78fef;"></div>
-        Ashar (CTO)
-      </div>
-    </div>
+    <div class="legend" id="mandala-legend"></div>
 
     <div class="grid" id="grid"></div>
 
     <div class="editor" id="editor">
-      <div class="editor-title">Edit cell</div>
+      <div class="editor-header">
+        <div class="editor-title">Edit cell</div>
+        <div class="editor-context" id="e-context"></div>
+      </div>
+
       <label for="e-label">Label</label>
       <input id="e-label" type="text" maxlength="44" placeholder="1–3 words" />
+
       <div class="editor-row" id="e-meta-row">
         <div>
           <label for="e-owner">Owner</label>
@@ -78,27 +64,23 @@
           </select>
         </div>
       </div>
+
       <div id="e-tip-wrap">
-        <label for="e-tip">Reasoning (optional)</label>
+        <label for="e-tip">Reasoning <span class="modal-optional">(optional)</span></label>
         <textarea id="e-tip" placeholder="Why does this matter?"></textarea>
       </div>
+
       <div class="editor-btns">
         <button class="btn btn--primary" id="e-save">Save</button>
         <button class="btn btn--danger"  id="e-clear">Reset to default</button>
         <button class="btn"              id="e-cancel">Cancel</button>
       </div>
     </div>
-
-    <div class="footer">
-      <div class="status" id="status"></div>
-    </div>
-
   </main>
 
-  <!-- ── Tab: Metrics ── -->
+  <!-- ══ Metrics ══ -->
   <main class="page tab-panel tab-panel--active" id="tab-metrics">
 
-    <!-- Company -->
     <section class="metrics-section">
       <div class="metrics-section-title">Company</div>
       <div class="metrics-grid">
@@ -110,45 +92,37 @@
       </div>
     </section>
 
-    <!-- LinkedIn -->
     <section class="metrics-section">
       <div class="metrics-section-title">LinkedIn</div>
       <div class="metrics-grid">
-
-        <div class="metric-card">
+        <div class="metric-card" id="kpi-linkedin-card">
           <div class="metric-label">Company Followers</div>
           <div class="metric-value" id="kpi-linkedin">—</div>
           <div class="metric-meta" id="kpi-linkedin-date">Auto-updated daily</div>
         </div>
-
         <div class="metric-card" id="kpi-li-yash">
           <div class="metric-label">Yash (CEO)</div>
           <div class="metric-value">—</div>
           <div class="metric-meta"></div>
         </div>
-
         <div class="metric-card" id="kpi-li-rohit">
           <div class="metric-label">Rohit (Pres)</div>
           <div class="metric-value">—</div>
           <div class="metric-meta"></div>
         </div>
-
         <div class="metric-card" id="kpi-li-ashar">
           <div class="metric-label">Ashar (CTO)</div>
           <div class="metric-value">—</div>
           <div class="metric-meta"></div>
         </div>
-
       </div>
     </section>
 
-    <!-- Website — Google Analytics -->
     <section class="metrics-section" id="ga-section">
       <div class="metrics-section-title">Website <span class="section-badge" id="ga-status">Loading…</span></div>
 
-      <!-- Summary row -->
-      <div class="metrics-grid metrics-grid--5" style="margin-bottom:12px;">
-        <div class="metric-card ga-tip" data-tip="Total visits to the site in the last 30 days. One person visiting 3 pages = 1 session.">
+      <div class="metrics-grid metrics-grid--5 metrics-grid--tight">
+        <div class="metric-card ga-tip" data-tip="Total visits to the site in the last 30 days. One person viewing 3 pages = 1 session.">
           <div class="metric-label">Sessions (30d) <span class="ga-info">?</span></div>
           <div class="metric-value" id="ga-sessions">—</div>
         </div>
@@ -160,198 +134,59 @@
           <div class="metric-label">New Users <span class="ga-info">?</span></div>
           <div class="metric-value" id="ga-new-users">—</div>
         </div>
-        <div class="metric-card ga-tip" data-tip="% of sessions where the visitor spent 10+ seconds or viewed 2+ pages. Higher is better — means people are reading the site.">
+        <div class="metric-card ga-tip" data-tip="% of sessions where the visitor spent 10+ seconds or viewed 2+ pages. Higher is better.">
           <div class="metric-label">Engagement Rate <span class="ga-info">?</span></div>
           <div class="metric-value" id="ga-engagement">—</div>
         </div>
-        <div class="metric-card ga-tip" data-tip="% of sessions where the visitor left immediately without interacting. Lower is better. 78% is high — most visitors are just glancing.">
+        <div class="metric-card ga-tip" data-tip="% of sessions where the visitor left immediately without interacting. Lower is better.">
           <div class="metric-label">Bounce Rate <span class="ga-info">?</span></div>
           <div class="metric-value" id="ga-bounce">—</div>
         </div>
       </div>
       <div class="ga-tooltip" id="ga-tooltip"></div>
 
-      <!-- Daily chart -->
-      <div class="metric-card metric-card--chart" style="margin-bottom:12px;">
-        <div class="metric-label" style="margin-bottom:16px;">Visitors per day — last 30 days</div>
+      <div class="metric-card metric-card--chart metrics-stack">
+        <div class="metric-label metric-label--chart">Visitors per day — last 30 days</div>
         <div class="chart-wrap">
           <canvas id="ga-spark"></canvas>
           <div class="chart-hover-tip" id="ga-spark-tip"></div>
         </div>
       </div>
 
-      <!-- Weekly chart -->
-      <div class="metric-card metric-card--chart" style="margin-bottom:12px;">
-        <div class="metric-label" style="margin-bottom:16px;">Visitors per week — last 3 months</div>
+      <div class="metric-card metric-card--chart metrics-stack">
+        <div class="metric-label metric-label--chart">Visitors per week — last 3 months</div>
         <div class="chart-wrap">
           <canvas id="ga-weekly"></canvas>
           <div class="chart-hover-tip" id="ga-weekly-tip"></div>
         </div>
       </div>
 
-      <!-- Sources row -->
-      <div class="metric-card" style="margin-bottom:12px;">
-        <div class="metric-label" style="margin-bottom:12px;">Traffic Sources</div>
+      <div class="metric-card metrics-stack">
+        <div class="metric-label metric-label--list">Traffic Sources</div>
         <div id="ga-sources"></div>
       </div>
 
-      <!-- Countries + Top pages row -->
-      <div class="metrics-grid metrics-grid--2" style="margin-bottom:0;">
+      <div class="metrics-grid metrics-grid--2">
         <div class="metric-card">
-          <div class="metric-label" style="margin-bottom:10px;">Users by Country (30d)</div>
+          <div class="metric-label metric-label--list">Users by Country (30d)</div>
           <div id="ga-countries"></div>
         </div>
         <div class="metric-card">
-          <div class="metric-label" style="margin-bottom:10px;">Top Pages (30d)</div>
+          <div class="metric-label metric-label--list">Top Pages (30d)</div>
           <div id="ga-pages"></div>
         </div>
       </div>
-
     </section>
-
   </main>
 
-  <!-- ── Tab: CRM ── -->
-  <main class="page tab-panel" id="tab-crm">
-
-    <!-- Sub-tabs -->
-    <div class="sub-tabs">
-      <button class="sub-tab sub-tab--active" data-crm-tab="contacts">Contacts</button>
-      <button class="sub-tab" data-crm-tab="inbox">
-        Inbox Detections
-        <span class="crm-pending-badge" id="crm-pending-count" style="display:none;"></span>
-      </button>
-    </div>
-
-    <!-- Contacts panel -->
-    <div id="crm-panel-contacts">
-      <div class="crm-toolbar">
-        <input class="crm-search" id="crm-search" type="text" placeholder="Search by name, company or position…" />
-        <button class="btn btn--primary" id="crm-add-btn">+ Add Contact</button>
-      </div>
-      <div class="crm-filter-bar" id="crm-filter-bar"></div>
-      <div class="crm-header">
-        <div>Name / Role</div>
-        <div>Tags</div>
-        <div>Latest Touchpoint</div>
-        <div></div>
-      </div>
-      <div id="crm-list"></div>
-    </div>
-
-    <!-- Inbox Detections panel -->
-    <div id="crm-panel-inbox" style="display:none;">
-      <p class="sub">People detected in your emails — review and add to CRM or dismiss.</p>
-      <div id="crm-pending-list"></div>
-    </div>
-
-  </main>
-
-  <!-- ── Tab: Live Tasks ── -->
+  <!-- ══ Live Tasks ══ -->
   <main class="page tab-panel" id="tab-tasks">
     <div class="tasks-toolbar">
       <button class="btn btn--primary" id="tasks-add-btn">+ Add Task</button>
     </div>
-    <div class="tasks-board" id="tasks-board">
-      <!-- rendered by tasks.js -->
-    </div>
+    <div class="tasks-board" id="tasks-board"></div>
   </main>
 
-  <!-- ── Tab: Contact Finder ── -->
-  <main class="page tab-panel" id="tab-finder">
-
-    <!-- Single lookup -->
-    <section class="enrich-section">
-      <div class="enrich-section-title">Single Lookup</div>
-      <p class="sub">Enter a name and company to find email, phone and LinkedIn.</p>
-      <form class="enrich-form" id="enrich-form">
-        <input class="enrich-input" id="enrich-first"   type="text" placeholder="First name"   required />
-        <input class="enrich-input" id="enrich-last"    type="text" placeholder="Last name"    required />
-        <input class="enrich-input" id="enrich-company" type="text" placeholder="Company name" required />
-        <button class="btn btn--primary" type="submit">Find Contact</button>
-      </form>
-      <div class="enrich-spinner" id="enrich-spinner" style="display:none;">Looking up…</div>
-      <div id="enrich-single-result"></div>
-    </section>
-
-    <div class="enrich-divider"></div>
-
-    <!-- Bulk CSV -->
-    <section class="enrich-section">
-      <div class="enrich-section-title">Bulk CSV Lookup</div>
-      <p class="sub">Upload a CSV and we'll enrich every row. Download the results as Excel.</p>
-
-      <div class="enrich-csv-instructions">
-        <div class="enrich-csv-instructions-title">CSV format — 3 columns, with this exact header row:</div>
-        <code class="enrich-csv-code">first_name,last_name,company</code>
-        <div style="margin-top:6px;font-size:11px;color:#5a7a78;">Example rows: <code>Alex,Lundberg,TechCorp</code> &nbsp;·&nbsp; <code>Jane,Smith,Acme Ltd</code></div>
-      </div>
-
-      <div class="enrich-file-row">
-        <label class="enrich-file-btn" for="enrich-csv-file">
-          <span id="enrich-file-label">Choose CSV file</span>
-          <input type="file" id="enrich-csv-file" accept=".csv" style="display:none;" />
-        </label>
-        <button class="btn btn--primary" id="enrich-bulk-run" disabled>Run Lookup</button>
-        <button class="btn" id="enrich-bulk-export" style="display:none;">↓ Export to Excel</button>
-      </div>
-
-      <div class="enrich-bulk-progress" id="enrich-bulk-progress"></div>
-      <div id="enrich-bulk-table"></div>
-    </section>
-
-  </main>
-
-  <!-- ── Tab: GTM ── -->
-  <main class="page tab-panel" id="tab-gtm">
-    <div class="gtm-header">
-      <div class="gtm-campaign-selector">
-        <select class="gtm-campaign-select" id="gtm-campaign-select"></select>
-      </div>
-      <div class="gtm-stats" id="gtm-stats"></div>
-    </div>
-    <div class="gtm-table-wrap">
-      <table class="gtm-table" id="gtm-table">
-        <colgroup>
-          <col style="width:40px">      <!-- # -->
-          <col style="width:220px">     <!-- Company -->
-          <col style="width:140px">     <!-- Sector -->
-          <col style="width:170px">     <!-- Contact -->
-          <col style="width:90px">      <!-- Revenue -->
-          <col style="width:80px">      <!-- Growth -->
-          <col style="width:130px">     <!-- Email -->
-          <col style="width:110px">     <!-- LinkedIn -->
-          <col style="width:150px">     <!-- Phone / Assignee -->
-          <col style="width:60px">      <!-- Notes -->
-        </colgroup>
-        <thead>
-          <tr>
-            <th class="gtm-th">#</th>
-            <th class="gtm-th">Company</th>
-            <th class="gtm-th">Sector</th>
-            <th class="gtm-th">Contact</th>
-            <th class="gtm-th gtm-th--right">Revenue</th>
-            <th class="gtm-th gtm-th--right">Growth</th>
-            <th class="gtm-th gtm-th--center">Step 1 · Email</th>
-            <th class="gtm-th gtm-th--center">Step 2 · LinkedIn</th>
-            <th class="gtm-th gtm-th--center">Step 3 · Phone</th>
-            <th class="gtm-th gtm-th--center">Notes</th>
-          </tr>
-        </thead>
-        <tbody id="gtm-tbody"></tbody>
-      </table>
-    </div>
-
-    <!-- Lead detail drawer -->
-    <div class="gtm-overlay" id="gtm-overlay"></div>
-    <aside class="gtm-drawer" id="gtm-drawer"></aside>
-  </main>
-
-  <!-- ── CRM Drawer overlay ── -->
-  <div class="crm-overlay" id="crm-overlay"></div>
-  <aside class="crm-drawer" id="crm-drawer"></aside>
-
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script type="module" src="app.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

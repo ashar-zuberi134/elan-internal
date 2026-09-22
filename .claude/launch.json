@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "mandala",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-p", "3333", "/tmp/elan-mandala"],
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "3333", "--directory", "/Users/asharzuberi/Desktop/Developer/Elan Advisors/elan-internal"],
       "port": 3333
     }
   ]
