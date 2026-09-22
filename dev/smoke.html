@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elan — Internal (dev smoke harness)</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  // ── Local smoke harness: fake session + stubbed PostgREST ──────────────
+  // Lets the three tabs render before the migration has been run.
+  (function () {
+    const REF = 'sofzlqjszuskvwlkxvhr';
+    const hour = Math.floor(Date.now() / 1000) + 3600;
+    localStorage.setItem('sb-' + REF + '-auth-token', JSON.stringify({
+      access_token: 'smoke', token_type: 'bearer', expires_in: 3600, expires_at: hour,
+      refresh_token: 'smoke',
+      user: { id: '00000000-0000-0000-0000-000000000001', email: 'smoke@elan.test',
+              user_metadata: { name: 'Smoke Test' }, aud: 'authenticated', role: 'authenticated' },
+    }));
+
+    const today = new Date();
+    const iso = d => new Date(today.getTime() + d * 864e5).toISOString().slice(0, 10);
+
+    const PEOPLE = [
+      { id: 'yash',  label: 'Yash',  role: 'CEO',       owner_code: 'CEO',  accent: '#F4A261', sort_order: 1 },
+      { id: 'rohit', label: 'Rohit', role: 'President', owner_code: 'Pres', accent: '#E76F51', sort_order: 2 },
+      { id: 'ashar', label: 'Ashar', role: 'CTO',       owner_code: 'CTO',  accent: '#a78fef', sort_order: 3 },
+    ];
+
+    const TASKS = [
+      { id: 't1', person_id: 'yash',  title: 'Overdue thing', description: '', due_date: iso(-4),
+        status: 'active', created_at: '2026-09-01T10:00:00Z', completed_at: null },
+      { id: 't2', person_id: 'yash',  title: 'Due today', description: 'Line one\nline two',
+        due_date: iso(0), status: 'active', created_at: '2026-09-02T10:00:00Z', completed_at: null },
+      { id: 't3', person_id: 'yash',  title: 'No due date', description: '', due_date: null,
+        status: 'active', created_at: '2026-09-03T10:00:00Z', completed_at: null },
+      { id: 't4', person_id: 'rohit', title: 'Escaping check <img src=x onerror=alert(1)> & "quotes"',
+        description: '<b>not bold</b>', due_date: iso(2), status: 'active',
+        created_at: '2026-09-04T10:00:00Z', completed_at: null },
+      { id: 't5', person_id: 'ashar', title: 'Due tomorrow', description: '', due_date: iso(1),
+        status: 'active', created_at: '2026-09-05T10:00:00Z', completed_at: null },
+    ];
+    for (let i = 1; i <= 5; i++) TASKS.push({
+      id: 'd' + i, person_id: 'ashar', title: 'Completed item ' + i, description: '',
+      due_date: null, status: 'done', created_at: '2026-08-0' + i + 'T10:00:00Z',
+      completed_at: '2026-09-0' + i + 'T10:00:00Z' });
+
+    const MANDALA = [{"block_index":0,"slot":0,"kind":"cell","block_name":"Team","label":"Engineers\n(2x)","owner_code":"CEO","term":"N","tip":"","default_label":"Engineers\n(2x)","default_owner":"CEO","default_term":"N","default_tip":""},{"block_index":0,"slot":1,"kind":"cell","block_name":"Team","label":"GTM Lead","owner_code":"CEO","term":"N","tip":"","default_label":"GTM Lead","default_owner":"CEO","default_term":"N","default_tip":""},{"block_index":0,"slot":2,"kind":"cell","block_name":"Team","label":"Rohit\n(3x week)","owner_code":"CEO","term":"L","tip":"","default_label":"Rohit\n(3x week)","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":0,"slot":3,"kind":"cell","block_name":"Team","label":"Execution\nBankers (2x)","owner_code":"CEO","term":"N","tip":"","default_label":"Execution\nBankers (2x)","default_owner":"CEO","default_term":"N","default_tip":""},{"block_index":0,"slot":4,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"center","block_name":"Team","label":"Team","default_label":"Team"},{"block_index":0,"slot":5,"kind":"cell","block_name":"Team","label":"Account\nExec. (2x)","owner_code":"CEO","term":"N","tip":"","default_label":"Account\nExec. (2x)","default_owner":"CEO","default_term":"N","default_tip":""},{"block_index":0,"slot":6,"kind":"cell","block_name":"Team","label":"Senior\nBanker (1x)","owner_code":"CEO","term":"N","tip":"","default_label":"Senior\nBanker (1x)","default_owner":"CEO","default_term":"N","default_tip":""},{"block_index":0,"slot":7,"kind":"cell","block_name":"Team","label":"Ashar\nFull Time","owner_code":"CEO","term":"L","tip":"","default_label":"Ashar\nFull Time","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":0,"slot":8,"kind":"cell","block_name":"Team","label":"Office\nSpace","owner_code":"CEO","term":"L","tip":"","default_label":"Office\nSpace","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":1,"slot":0,"kind":"cell","block_name":"Founder Discipline","label":"Physical Rec.\n(3x week)","owner_code":"All","term":"L","tip":"","default_label":"Physical Rec.\n(3x week)","default_owner":"All","default_term":"L","default_tip":""},{"block_index":1,"slot":1,"kind":"cell","block_name":"Founder Discipline","label":"In Person\n(1 / Qtr)","owner_code":"CEO","term":"L","tip":"","default_label":"In Person\n(1 / Qtr)","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":1,"slot":2,"kind":"cell","block_name":"Founder Discipline","label":"Workflow\n(1 / Qtr)","owner_code":"All","term":"L","tip":"","default_label":"Workflow\n(1 / Qtr)","default_owner":"All","default_term":"L","default_tip":""},{"block_index":1,"slot":3,"kind":"cell","block_name":"Founder Discipline","label":"Annual\nOffsite","owner_code":"CEO","term":"L","tip":"","default_label":"Annual\nOffsite","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":1,"slot":4,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"center","block_name":"Founder Discipline","label":"Founder\nDiscipline","default_label":"Founder\nDiscipline"},{"block_index":1,"slot":5,"kind":"cell","block_name":"Founder Discipline","label":"Comms\nDiscipline","owner_code":"All","term":"L","tip":"","default_label":"Comms\nDiscipline","default_owner":"All","default_term":"L","default_tip":""},{"block_index":1,"slot":6,"kind":"cell","block_name":"Founder Discipline","label":"Quarterly\nHorada Review","owner_code":"CEO","term":"L","tip":"","default_label":"Quarterly\nHorada Review","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":1,"slot":7,"kind":"cell","block_name":"Founder Discipline","label":"Non – Work\nCall (1x Week)","owner_code":"CEO","term":"L","tip":"","default_label":"Non – Work\nCall (1x Week)","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":1,"slot":8,"kind":"cell","block_name":"Founder Discipline","label":"Network. Event\n(3 / Qtr)","owner_code":"All","term":"L","tip":"","default_label":"Network. Event\n(3 / Qtr)","default_owner":"All","default_term":"L","default_tip":""},{"block_index":2,"slot":0,"kind":"cell","block_name":"M&A Process","label":"Qualification\nEngine","owner_code":"CTO","term":"N","tip":"","default_label":"Qualification\nEngine","default_owner":"CTO","default_term":"N","default_tip":""},{"block_index":2,"slot":1,"kind":"cell","block_name":"M&A Process","label":"Deal\nDiagnostics","owner_code":"CEO","term":"N","tip":"","default_label":"Deal\nDiagnostics","default_owner":"CEO","default_term":"N","default_tip":""},{"block_index":2,"slot":2,"kind":"cell","block_name":"M&A Process","label":"Database\nFrontend","owner_code":"CTO","term":"L","tip":"","default_label":"Database\nFrontend","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":2,"slot":3,"kind":"cell","block_name":"M&A Process","label":"Deal\nPortal","owner_code":"CTO","term":"N","tip":"","default_label":"Deal\nPortal","default_owner":"CTO","default_term":"N","default_tip":""},{"block_index":2,"slot":4,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"center","block_name":"M&A Process","label":"M&A\nProcess","default_label":"M&A\nProcess"},{"block_index":2,"slot":5,"kind":"cell","block_name":"M&A Process","label":"Deal\nPlaybook","owner_code":"CEO","term":"L","tip":"","default_label":"Deal\nPlaybook","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":2,"slot":6,"kind":"cell","block_name":"M&A Process","label":"Limited Execution\nfrom Yash","owner_code":"CTO","term":"N","tip":"","default_label":"Limited Execution\nfrom Yash","default_owner":"CTO","default_term":"N","default_tip":""},{"block_index":2,"slot":7,"kind":"cell","block_name":"M&A Process","label":"First Close\nby Q2 2027","owner_code":"CEO","term":"L","tip":"","default_label":"First Close\nby Q2 2027","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":2,"slot":8,"kind":"cell","block_name":"M&A Process","label":"Buyer Outreach\nAutomat.","owner_code":"CTO","term":"L","tip":"","default_label":"Buyer Outreach\nAutomat.","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":3,"slot":0,"kind":"cell","block_name":"Tech","label":"Qualification\nEngine","owner_code":"CTO","term":"N","tip":"","default_label":"Qualification\nEngine","default_owner":"CTO","default_term":"N","default_tip":""},{"block_index":3,"slot":1,"kind":"cell","block_name":"Tech","label":"Precedent\nTool","owner_code":"CTO","term":"L","tip":"","default_label":"Precedent\nTool","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":3,"slot":2,"kind":"cell","block_name":"Tech","label":"Database\nFrontend","owner_code":"CTO","term":"L","tip":"","default_label":"Database\nFrontend","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":3,"slot":3,"kind":"cell","block_name":"Tech","label":"Content\nGenerat.","owner_code":"CTO","term":"N","tip":"","default_label":"Content\nGenerat.","default_owner":"CTO","default_term":"N","default_tip":""},{"block_index":3,"slot":4,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"center","block_name":"Tech","label":"Tech","default_label":"Tech"},{"block_index":3,"slot":5,"kind":"cell","block_name":"Tech","label":"Cold Engage.\n(20%)","owner_code":"CTO","term":"L","tip":"","default_label":"Cold Engage.\n(20%)","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":3,"slot":6,"kind":"cell","block_name":"Tech","label":"BD Workflow\n(2-3x)","owner_code":"CTO","term":"N","tip":"","default_label":"BD Workflow\n(2-3x)","default_owner":"CTO","default_term":"N","default_tip":""},{"block_index":3,"slot":7,"kind":"cell","block_name":"Tech","label":"Buyer Outreach\nAutomat.","owner_code":"CTO","term":"L","tip":"","default_label":"Buyer Outreach\nAutomat.","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":3,"slot":8,"kind":"cell","block_name":"Tech","label":"M&A Workflow\n(2-3x)","owner_code":"CTO","term":"L","tip":"","default_label":"M&A Workflow\n(2-3x)","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":4,"slot":0,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"surround","block_name":"CORE","label":"Team","default_label":"Team"},{"block_index":4,"slot":1,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"surround","block_name":"CORE","label":"Founder\nDiscipline","default_label":"Founder\nDiscipline"},{"block_index":4,"slot":2,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"surround","block_name":"CORE","label":"M&A\nProcess","default_label":"M&A\nProcess"},{"block_index":4,"slot":3,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"surround","block_name":"CORE","label":"Tech","default_label":"Tech"},{"block_index":4,"slot":4,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"core","block_name":"CORE","label":"25 Deals\nClosed by\nApril 2029","default_label":"25 Deals\nClosed by\nApril 2029"},{"block_index":4,"slot":5,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"surround","block_name":"CORE","label":"Brand","default_label":"Brand"},{"block_index":4,"slot":6,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"surround","block_name":"CORE","label":"Referral\nNetwork","default_label":"Referral\nNetwork"},{"block_index":4,"slot":7,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"surround","block_name":"CORE","label":"Buyer\nNetwork","default_label":"Buyer\nNetwork"},{"block_index":4,"slot":8,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"surround","block_name":"CORE","label":"Pipeline","default_label":"Pipeline"},{"block_index":5,"slot":0,"kind":"cell","block_name":"Brand","label":"Precedent\nTool","owner_code":"CTO","term":"L","tip":"","default_label":"Precedent\nTool","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":5,"slot":1,"kind":"cell","block_name":"Brand","label":"Speaking Engage.\n(3x Year)","owner_code":"Pres","term":"L","tip":"","default_label":"Speaking Engage.\n(3x Year)","default_owner":"Pres","default_term":"L","default_tip":""},{"block_index":5,"slot":2,"kind":"cell","block_name":"Brand","label":"Company\nLinkedin (1k)","owner_code":"CEO","term":"L","tip":"","default_label":"Company\nLinkedin (1k)","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":5,"slot":3,"kind":"cell","block_name":"Brand","label":"Founders\nLinkedin (5k)","owner_code":"All","term":"L","tip":"","default_label":"Founders\nLinkedin (5k)","default_owner":"All","default_term":"L","default_tip":""},{"block_index":5,"slot":4,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"center","block_name":"Brand","label":"Brand","default_label":"Brand"},{"block_index":5,"slot":5,"kind":"cell","block_name":"Brand","label":"Award","owner_code":"Pres","term":"L","tip":"","default_label":"Award","default_owner":"Pres","default_term":"L","default_tip":""},{"block_index":5,"slot":6,"kind":"cell","block_name":"Brand","label":"Elan Events\n(5x Year)","owner_code":"Pres","term":"L","tip":"","default_label":"Elan Events\n(5x Year)","default_owner":"Pres","default_term":"L","default_tip":""},{"block_index":5,"slot":7,"kind":"cell","block_name":"Brand","label":"Press\nCoverage","owner_code":"Pres","term":"L","tip":"","default_label":"Press\nCoverage","default_owner":"Pres","default_term":"L","default_tip":""},{"block_index":5,"slot":8,"kind":"cell","block_name":"Brand","label":"Case\nStudies","owner_code":"CEO","term":"L","tip":"","default_label":"Case\nStudies","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":6,"slot":0,"kind":"cell","block_name":"Referral Network","label":"Referral\nDatabase","owner_code":"Pres","term":"L","tip":"Track every referral given and received — networks die without reciprocity","default_label":"Referral\nDatabase","default_owner":"Pres","default_term":"L","default_tip":"Track every referral given and received — networks die without reciprocity"},{"block_index":6,"slot":1,"kind":"cell","block_name":"Referral Network","label":"Elan Events\n(5x Year)","owner_code":"Pres","term":"L","tip":"","default_label":"Elan Events\n(5x Year)","default_owner":"Pres","default_term":"L","default_tip":""},{"block_index":6,"slot":2,"kind":"cell","block_name":"Referral Network","label":"Cold Engage.\n(20%)","owner_code":"CTO","term":"L","tip":"","default_label":"Cold Engage.\n(20%)","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":6,"slot":3,"kind":"cell","block_name":"Referral Network","label":"Existing Seller\nInbound (1x Year)","owner_code":"Pres","term":"N","tip":"","default_label":"Existing Seller\nInbound (1x Year)","default_owner":"Pres","default_term":"N","default_tip":""},{"block_index":6,"slot":4,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"center","block_name":"Referral Network","label":"Mandate\nPipeline","default_label":"Mandate\nPipeline"},{"block_index":6,"slot":5,"kind":"cell","block_name":"Referral Network","label":"Industry Events\n(5x Year)","owner_code":"Pres","term":"L","tip":"","default_label":"Industry Events\n(5x Year)","default_owner":"Pres","default_term":"L","default_tip":""},{"block_index":6,"slot":6,"kind":"cell","block_name":"Referral Network","label":"Qualification\nEngine","owner_code":"CTO","term":"N","tip":"","default_label":"Qualification\nEngine","default_owner":"CTO","default_term":"N","default_tip":""},{"block_index":6,"slot":7,"kind":"cell","block_name":"Referral Network","label":"GTM Lead","owner_code":"CEO","term":"N","tip":"","default_label":"GTM Lead","default_owner":"CEO","default_term":"N","default_tip":""},{"block_index":6,"slot":8,"kind":"cell","block_name":"Referral Network","label":"Account\nExec. (2x)","owner_code":"CEO","term":"N","tip":"","default_label":"Account\nExec. (2x)","default_owner":"CEO","default_term":"N","default_tip":""},{"block_index":7,"slot":0,"kind":"cell","block_name":"Buyer Network","label":"Buyer Outreach\nAutomat.","owner_code":"CTO","term":"L","tip":"","default_label":"Buyer Outreach\nAutomat.","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":7,"slot":1,"kind":"cell","block_name":"Buyer Network","label":"Database\nFrontend","owner_code":"CTO","term":"L","tip":"","default_label":"Database\nFrontend","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":7,"slot":2,"kind":"cell","block_name":"Buyer Network","label":"Motion for PEs to\nUnderstand Criteria","owner_code":"Pres","term":"L","tip":"Funds receive deals they cannot do — be their trusted redirect","default_label":"Motion for PEs to\nUnderstand Criteria","default_owner":"Pres","default_term":"L","default_tip":"Funds receive deals they cannot do — be their trusted redirect"},{"block_index":7,"slot":3,"kind":"cell","block_name":"Buyer Network","label":"Industry Events\n(5x Year)","owner_code":"Pres","term":"L","tip":"","default_label":"Industry Events\n(5x Year)","default_owner":"Pres","default_term":"L","default_tip":""},{"block_index":7,"slot":4,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"center","block_name":"Buyer Network","label":"Buyers","default_label":"Buyers"},{"block_index":7,"slot":5,"kind":"cell","block_name":"Buyer Network","label":"Buyer Mandates\n(2-3x Yr)","owner_code":"Pres","term":"L","tip":"Every buyer should know your deal criteria in one sentence","default_label":"Buyer Mandates\n(2-3x Yr)","default_owner":"Pres","default_term":"L","default_tip":"Every buyer should know your deal criteria in one sentence"},{"block_index":7,"slot":6,"kind":"cell","block_name":"Buyer Network","label":"Quarterly Sector\nNewsletter","owner_code":"CTO","term":"N","tip":"Send buyers a short market update to stay top of mind without selling","default_label":"Quarterly Sector\nNewsletter","default_owner":"CTO","default_term":"N","default_tip":"Send buyers a short market update to stay top of mind without selling"},{"block_index":7,"slot":7,"kind":"cell","block_name":"Buyer Network","label":"Precedent\nTool","owner_code":"CTO","term":"L","tip":"","default_label":"Precedent\nTool","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":7,"slot":8,"kind":"cell","block_name":"Buyer Network","label":"Buyer Mandate\nPlaybook","owner_code":"CEO","term":"L","tip":"","default_label":"Buyer Mandate\nPlaybook","default_owner":"CEO","default_term":"L","default_tip":""},{"block_index":8,"slot":0,"kind":"cell","block_name":"Pipeline","label":"New Partner\n(1x Year)","owner_code":"Pres","term":"L","tip":"","default_label":"New Partner\n(1x Year)","default_owner":"Pres","default_term":"L","default_tip":""},{"block_index":8,"slot":1,"kind":"cell","block_name":"Pipeline","label":"Academia","owner_code":"CTO","term":"L","tip":"","default_label":"Academia","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":8,"slot":2,"kind":"cell","block_name":"Pipeline","label":"Existing Seller\nInbound (1x Year)","owner_code":"Pres","term":"N","tip":"","default_label":"Existing Seller\nInbound (1x Year)","default_owner":"Pres","default_term":"N","default_tip":""},{"block_index":8,"slot":3,"kind":"cell","block_name":"Pipeline","label":"Elan Events\n(5x Year)","owner_code":"Pres","term":"L","tip":"One targeted industry event per quarter to re-activate warm ties","default_label":"Elan Events\n(5x Year)","default_owner":"Pres","default_term":"L","default_tip":"One targeted industry event per quarter to re-activate warm ties"},{"block_index":8,"slot":4,"tip":"","default_tip":"","owner_code":null,"term":null,"kind":"center","block_name":"Pipeline","label":"Partners /\nReferrals","default_label":"Partners /\nReferrals"},{"block_index":8,"slot":5,"kind":"cell","block_name":"Pipeline","label":"Memberships\n(1x Year)","owner_code":"Pres","term":"N","tip":"","default_label":"Memberships\n(1x Year)","default_owner":"Pres","default_term":"N","default_tip":""},{"block_index":8,"slot":6,"kind":"cell","block_name":"Pipeline","label":"Referral\nDatabase","owner_code":"Pres","term":"L","tip":"","default_label":"Referral\nDatabase","default_owner":"Pres","default_term":"L","default_tip":""},{"block_index":8,"slot":7,"kind":"cell","block_name":"Pipeline","label":"Cold Motion\nfor Partners","owner_code":"CTO","term":"L","tip":"","default_label":"Cold Motion\nfor Partners","default_owner":"CTO","default_term":"L","default_tip":""},{"block_index":8,"slot":8,"kind":"cell","block_name":"Pipeline","label":"Automated Linkedin\nEngage.","owner_code":"CTO","term":"N","tip":"","default_label":"Automated Linkedin\nEngage.","default_owner":"CTO","default_term":"N","default_tip":""}];
+
+    // Emulate PostgREST closely enough to exercise the real client paths:
+    // honour Accept: application/vnd.pgrst.object+json (what .single() sends),
+    // and actually apply POST / PATCH / DELETE to the fixture array.
+    const respond = (body, init) => new Response(
+      body === null ? null : JSON.stringify(body),
+      { status: init?.status ?? 200, headers: { 'Content-Type': 'application/json' } });
+
+    const wantsObject = init => {
+      const h = init?.headers;
+      let accept = '';
+      if (h instanceof Headers)      accept = h.get('Accept') ?? '';
+      else if (h && typeof h === 'object') {
+        for (const k of Object.keys(h)) if (k.toLowerCase() === 'accept') accept = h[k];
+      }
+      return String(accept).includes('vnd.pgrst.object');
+    };
+
+    const idFrom = url => (url.match(/id=eq\.([^&]+)/) || [])[1];
+
+    const shape = (rows, init) => wantsObject(init) ? (rows[0] ?? null) : rows;
+
+    const real = window.fetch.bind(window);
+    window.fetch = (input, init) => {
+      const url    = typeof input === 'string' ? input : input.url;
+      const method = (init?.method ?? 'GET').toUpperCase();
+
+      if (url.includes('/rest/v1/people'))        return Promise.resolve(respond(PEOPLE));
+      if (url.includes('/rest/v1/mandala_cells')) {
+        if (method === 'PATCH') {
+          const b  = JSON.parse(init.body);
+          const bi = +(url.match(/block_index=eq\.(\d+)/) || [])[1];
+          const sl = +(url.match(/slot=eq\.(\d+)/) || [])[1];
+          const i  = MANDALA.findIndex(c => c.block_index === bi && c.slot === sl);
+          if (i !== -1) MANDALA[i] = { ...MANDALA[i], ...b };
+          return Promise.resolve(respond(shape([MANDALA[i]], init)));
+        }
+        return Promise.resolve(respond(MANDALA));
+      }
+
+      if (url.includes('/rest/v1/tasks')) {
+        if (method === 'POST') {
+          const b   = JSON.parse(init.body);
+          const row = { id: 'new-' + Math.random().toString(36).slice(2, 7),
+                        description: '', due_date: null, status: 'active',
+                        created_at: new Date().toISOString(), completed_at: null, ...b };
+          if (row.status === 'done' && !row.completed_at) row.completed_at = new Date().toISOString();
+          TASKS.push(row);
+          return Promise.resolve(respond(shape([row], init), { status: 201 }));
+        }
+        if (method === 'PATCH') {
+          const b  = JSON.parse(init.body);
+          const id = idFrom(url);
+          const i  = TASKS.findIndex(t => t.id === id);
+          if (i === -1) return Promise.resolve(respond(shape([], init)));
+          TASKS[i] = { ...TASKS[i], ...b };
+          // the DB trigger keeps completed_at consistent with status
+          if (TASKS[i].status === 'done'  && !TASKS[i].completed_at)
+            TASKS[i].completed_at = new Date().toISOString();
+          if (TASKS[i].status === 'active') TASKS[i].completed_at = null;
+          return Promise.resolve(respond(shape([TASKS[i]], init)));
+        }
+        if (method === 'DELETE') {
+          const id = idFrom(url);
+          const i  = TASKS.findIndex(t => t.id === id);
+          if (i !== -1) TASKS.splice(i, 1);
+          return Promise.resolve(respond(null, { status: 204 }));
+        }
+        return Promise.resolve(respond(TASKS));
+      }
+
+      if (url.includes('/auth/v1/')) return Promise.resolve(respond({}));
+      return real(input, init);
+    };
+  })();
+  </script>
+</head>
+<body class="is-signed-out">
+  <div class="auth-gate" id="auth-gate"></div>
+
+
+  <!-- ══ Top bar ══ -->
+  <header class="topbar">
+    <div class="elan-logo">
+      <div class="elan-e"><span></span><span></span><span></span></div>
+      <div class="elan-wordmark">ELAN</div>
+    </div>
+    <nav class="tabs" aria-label="Sections">
+      <button class="tab" data-tab="mandala">Mandala</button>
+      <button class="tab tab--active" data-tab="metrics">Metrics</button>
+      <button class="tab" data-tab="tasks">Live Tasks</button>
+    </nav>
+    <div class="user-chip" id="user-chip"></div>
+  </header>
+
+  <!-- ══ Mandala ══ -->
+  <main class="page tab-panel" id="tab-mandala">
+    <p class="sub">Click any cell to edit. Hover a cell to read its reasoning.</p>
+
+    <div class="legend" id="mandala-legend"></div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="editor" id="editor">
+      <div class="editor-header">
+        <div class="editor-title">Edit cell</div>
+        <div class="editor-context" id="e-context"></div>
+      </div>
+
+      <label for="e-label">Label</label>
+      <input id="e-label" type="text" maxlength="44" placeholder="1–3 words" />
+
+      <div class="editor-row" id="e-meta-row">
+        <div>
+          <label for="e-owner">Owner</label>
+          <select id="e-owner">
+            <option value="CEO">Yash (CEO)</option>
+            <option value="Pres">Rohit (Pres)</option>
+            <option value="CTO">Ashar (CTO)</option>
+            <option value="All">All</option>
+          </select>
+        </div>
+        <div>
+          <label for="e-term">Timeframe</label>
+          <select id="e-term">
+            <option value="N">Near-term (&lt;12 mo)</option>
+            <option value="L">Long-term (12+ mo)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="e-tip-wrap">
+        <label for="e-tip">Reasoning <span class="modal-optional">(optional)</span></label>
+        <textarea id="e-tip" placeholder="Why does this matter?"></textarea>
+      </div>
+
+      <div class="editor-btns">
+        <button class="btn btn--primary" id="e-save">Save</button>
+        <button class="btn btn--danger"  id="e-clear">Reset to default</button>
+        <button class="btn"              id="e-cancel">Cancel</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══ Metrics ══ -->
+  <main class="page tab-panel tab-panel--active" id="tab-metrics">
+
+    <section class="metrics-section">
+      <div class="metrics-section-title">Company</div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Days Since Founding</div>
+          <div class="metric-value" id="kpi-days">—</div>
+          <div class="metric-meta">Since 24 May 2025</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-section">
+      <div class="metrics-section-title">LinkedIn</div>
+      <div class="metrics-grid">
+        <div class="metric-card" id="kpi-linkedin-card">
+          <div class="metric-label">Company Followers</div>
+          <div class="metric-value" id="kpi-linkedin">—</div>
+          <div class="metric-meta" id="kpi-linkedin-date">Auto-updated daily</div>
+        </div>
+        <div class="metric-card" id="kpi-li-yash">
+          <div class="metric-label">Yash (CEO)</div>
+          <div class="metric-value">—</div>
+          <div class="metric-meta"></div>
+        </div>
+        <div class="metric-card" id="kpi-li-rohit">
+          <div class="metric-label">Rohit (Pres)</div>
+          <div class="metric-value">—</div>
+          <div class="metric-meta"></div>
+        </div>
+        <div class="metric-card" id="kpi-li-ashar">
+          <div class="metric-label">Ashar (CTO)</div>
+          <div class="metric-value">—</div>
+          <div class="metric-meta"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-section" id="ga-section">
+      <div class="metrics-section-title">Website <span class="section-badge" id="ga-status">Loading…</span></div>
+
+      <div class="metrics-grid metrics-grid--5 metrics-grid--tight">
+        <div class="metric-card ga-tip" data-tip="Total visits to the site in the last 30 days. One person viewing 3 pages = 1 session.">
+          <div class="metric-label">Sessions (30d) <span class="ga-info">?</span></div>
+          <div class="metric-value" id="ga-sessions">—</div>
+        </div>
+        <div class="metric-card ga-tip" data-tip="Unique visitors in the last 30 days — counted once even if they visit multiple times.">
+          <div class="metric-label">Users (30d) <span class="ga-info">?</span></div>
+          <div class="metric-value" id="ga-users">—</div>
+        </div>
+        <div class="metric-card ga-tip" data-tip="Visitors who came to the site for the very first time in the last 30 days.">
+          <div class="metric-label">New Users <span class="ga-info">?</span></div>
+          <div class="metric-value" id="ga-new-users">—</div>
+        </div>
+        <div class="metric-card ga-tip" data-tip="% of sessions where the visitor spent 10+ seconds or viewed 2+ pages. Higher is better.">
+          <div class="metric-label">Engagement Rate <span class="ga-info">?</span></div>
+          <div class="metric-value" id="ga-engagement">—</div>
+        </div>
+        <div class="metric-card ga-tip" data-tip="% of sessions where the visitor left immediately without interacting. Lower is better.">
+          <div class="metric-label">Bounce Rate <span class="ga-info">?</span></div>
+          <div class="metric-value" id="ga-bounce">—</div>
+        </div>
+      </div>
+      <div class="ga-tooltip" id="ga-tooltip"></div>
+
+      <div class="metric-card metric-card--chart metrics-stack">
+        <div class="metric-label metric-label--chart">Visitors per day — last 30 days</div>
+        <div class="chart-wrap">
+          <canvas id="ga-spark"></canvas>
+          <div class="chart-hover-tip" id="ga-spark-tip"></div>
+        </div>
+      </div>
+
+      <div class="metric-card metric-card--chart metrics-stack">
+        <div class="metric-label metric-label--chart">Visitors per week — last 3 months</div>
+        <div class="chart-wrap">
+          <canvas id="ga-weekly"></canvas>
+          <div class="chart-hover-tip" id="ga-weekly-tip"></div>
+        </div>
+      </div>
+
+      <div class="metric-card metrics-stack">
+        <div class="metric-label metric-label--list">Traffic Sources</div>
+        <div id="ga-sources"></div>
+      </div>
+
+      <div class="metrics-grid metrics-grid--2">
+        <div class="metric-card">
+          <div class="metric-label metric-label--list">Users by Country (30d)</div>
+          <div id="ga-countries"></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label metric-label--list">Top Pages (30d)</div>
+          <div id="ga-pages"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ══ Live Tasks ══ -->
+  <main class="page tab-panel" id="tab-tasks">
+    <div class="tasks-toolbar">
+      <button class="btn btn--primary" id="tasks-add-btn">+ Add Task</button>
+    </div>
+    <div class="tasks-board" id="tasks-board"></div>
+  </main>
+
+  <script type="module" src="../js/app.js"></script>
+</body>
+</html>

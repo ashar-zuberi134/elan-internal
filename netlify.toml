@@ -1,12 +1,29 @@
 [build]
-  publish = "."
+  publish   = "."
   functions = "netlify/functions"
 
+[build.environment]
+  NODE_VERSION = "20"
+
+# Internal tool — never index it, and don't let it be framed.
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
+    X-Frame-Options        = "DENY"
     X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "geolocation=(), microphone=(), camera=()"
+    X-Robots-Tag           = "noindex, nofollow"
 
-[functions."email-sync"]
-  schedule = "*/30 * * * *"
+# dev/ holds the local smoke harness (fake session + stubbed PostgREST).
+# It is useful on localhost and must never be reachable in production.
+[[redirects]]
+  from   = "/dev/*"
+  to     = "/index.html"
+  status = 404
+
+# The app is a single page; hash routing is handled client-side.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
